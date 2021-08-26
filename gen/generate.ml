@@ -19,6 +19,7 @@ let generate dirname =
 
     (* Generate the C header file that exports OCaml functions. *)
     writeln h_fd "#pragma once";
+    writeln h_fd "typedef struct IrminContext IrminContext;";
     writeln h_fd "typedef struct IrminType IrminType;";
     writeln h_fd "typedef struct IrminValue IrminValue;";
     writeln h_fd "typedef struct IrminConfig IrminConfig;";
