@@ -1,0 +1,22 @@
+(library
+ (name bindings)
+ (libraries irmin-unix ctypes.foreign)
+ (modules bindings))
+
+
+(rule
+ (targets irmin_bindings.ml irmin.c irmin.h)
+ (deps    (:gen ../gen/generate.exe))
+ (action  (run %{gen} .)))
+
+
+(executable
+ (name libirmin)
+ (libraries bindings)
+ (modes (native shared_object))
+ (modules libirmin irmin_bindings)
+ (foreign_stubs (language c) (names irmin)))
+
+(env
+  (dev
+    (flags (:standard -w -unused-var-strict))))

@@ -1,0 +1,9 @@
+(executable
+ (name irmin_schema_gen)
+ (modules irmin_schema_gen)
+ (libraries cmdliner unix))
+
+;(executable
+; (name a)
+; (modules a)
+; (libraries irmin-unix))
