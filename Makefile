@@ -7,7 +7,7 @@ else
 endif
 
 
-build:
+build: clean
 	mkdir -p out
 	dune build
 	cp _build/default/lib/irmin.h ./out
@@ -25,3 +25,7 @@ uninstall:
 	rm -f $(PREFIX)/include/irmin.h
 	rm -f $(PREFIX)/lib/libirmin.$(SOEXT)
 
+.PHONY: test
+test: build
+	$(CC) -o test/test test/test.c -I _build/default/lib/ -L _build/default/lib/ -lirmin -g
+	LD_LIBRARY_PATH=_build/default/lib ./test/test

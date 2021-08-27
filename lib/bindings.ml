@@ -114,7 +114,7 @@ let get store key =
   let (module Store : Irmin.S), store = Root.get store in
   let key = Root.get key in
   let x = Lwt_main.run (Store.find store key) in
-  match x with Some x -> Root.create x | None -> null
+  match x with Some x -> Root.create (Store.contents_t, x) | None -> null
 
 let remove store key =
   let (module Store : Irmin.S), store = Root.get store in
@@ -128,11 +128,15 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     export "key"
-      (schema @-> ptr string @-> int @-> returning key)
-      (fun schema arr i ->
-        let arr = CArray.from_ptr arr i in
+      (schema @-> ptr string_opt @-> returning key)
+      (fun schema arr ->
+        let rec loop i acc =
+          match !@(arr +@ i) with
+          | None -> acc
+          | Some x -> loop (i + 1) (x :: acc)
+        in
+        let l = loop 0 [] in
         let (module Store : Irmin.S), _ = Root.get schema in
-        let l = CArray.to_list arr in
         let l =
           List.map
             (fun x -> Irmin.Type.of_string Store.step_t x |> Result.get_ok)
@@ -154,14 +158,17 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
 
   let () = export "type_string" (void @-> returning ty) type_string
 
-  let () = export "value_string" (string @-> returning value) value_string
+  let () = export "value_string" (ptr char @-> returning value) value_string
 
   let () =
     export "value_to_string"
       (value @-> returning string)
       (fun value ->
         let t, v = Root.get value in
-        Irmin.Type.to_string t v)
+
+        let s = Irmin.Type.to_string t v in
+        print_endline s;
+        s)
 
   let () =
     export "value_of_string"
@@ -173,10 +180,11 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     export "value_to_bin"
-      (value @-> returning string)
+      (value @-> returning (ptr char))
       (fun value ->
         let t, v = Root.get value in
-        Irmin.Type.(unstage (to_bin_string t)) v)
+        Irmin.Type.(unstage (to_bin_string t)) v
+        |> CArray.of_string |> CArray.start)
 
   let () =
     export "value_of_bin"
