@@ -1,2 +1,0 @@
--I/home/zach/.opam/irmin-server/lib/ocaml
--I./_build/default/lib
