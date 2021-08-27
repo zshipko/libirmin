@@ -7,15 +7,16 @@ else
 endif
 
 
-build: clean
-	mkdir -p out
+build:
+	@rm -rf out
+	@mkdir out
 	dune build
 	cp _build/default/lib/irmin.h ./out
 	cp _build/default/lib/libirmin.$(SOEXT) ./out
 
 clean:
-	dune clean
-	rm -rf out
+	@dune clean
+	@rm -rf out
 
 install:
 	install out/irmin.h $(PREFIX)/include

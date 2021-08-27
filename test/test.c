@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
 
   char *k[] = {"a", "b", "c", NULL};
   AUTO IrminKey *key = irmin_key(schema, k);
-  assert(irmin_set(store, key, a));
+  AUTO IrminInfo *info = irmin_info_new(schema, "testing", NULL);
+  assert(irmin_set(store, key, a, info));
 
   char *s = irmin_value_to_string(ty, irmin_get(store, key));
   puts(s);

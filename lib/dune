@@ -1,14 +1,12 @@
 (library
  (name bindings)
  (libraries irmin-unix ctypes.foreign)
- (modules bindings))
-
+ (modules bindings types))
 
 (rule
  (targets irmin_bindings.ml irmin.c irmin.h)
  (deps    (:gen ../gen/generate.exe))
  (action  (run %{gen} .)))
-
 
 (executable
  (name libirmin)
