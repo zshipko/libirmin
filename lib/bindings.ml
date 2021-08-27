@@ -8,6 +8,10 @@ let type_name x = Fmt.to_to_string Irmin.Type.pp_ty x
 
 let free store = Root.release store
 
+let strlen ptr =
+  let rec loop i = if !@(ptr +@ i) = char_of_int 0 then i else loop (i + 1) in
+  loop 0
+
 module Stubs (I : Cstubs_inverted.INTERNAL) = struct
   let export ?(lock = false) name t f =
     I.internal ~runtime_lock:lock ("irmin_" ^ name) t f
@@ -62,34 +66,65 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
     export "value_string" (string @-> returning value) (fun s -> Root.create s)
 
   let () =
+    export "value_string_len"
+      (ptr char @-> int @-> returning value)
+      (fun s length ->
+        let length = if length < 0 then strlen s else length in
+        Root.create (string_from_ptr s ~length))
+
+  let () =
     export "value_to_string"
-      (ty @-> value @-> returning string)
-      (fun ty value ->
+      (ty @-> value @-> ptr int @-> returning string)
+      (fun ty value len ->
         let t = Root.get ty in
         let v = Root.get value in
         let s = Irmin.Type.to_string t v in
+        if not (is_null len) then len <-@ String.length s;
         s)
 
   let () =
+    export "type_bytes"
+      (void @-> returning ty)
+      (fun () -> Root.create Irmin.Type.bytes)
+
+  let () =
+    export "value_bytes"
+      (string @-> returning value)
+      (fun s -> Root.create (Bytes.of_string s))
+
+  let () =
+    export "value_bytes_len"
+      (ptr char @-> int @-> returning value)
+      (fun s length ->
+        let length = if length < 0 then strlen s else length in
+        Root.create (Bytes.of_string (string_from_ptr s ~length)))
+
+  let () =
     export "value_of_string"
-      (ty @-> string @-> returning value)
-      (fun ty s ->
+      (ty @-> ptr char @-> int @-> returning value)
+      (fun ty s length ->
+        let length = if length < 0 then strlen s else length in
         let ty = Root.get ty in
+        let s = string_from_ptr s ~length in
         let x = Irmin.Type.(of_string ty) s |> Result.get_ok in
         Root.create x)
 
   let () =
     export "value_to_bin"
-      (value @-> returning string)
-      (fun value ->
+      (value @-> ptr int @-> returning string)
+      (fun value len ->
         let t, v = Root.get value in
-        Irmin.Type.(unstage (to_bin_string t)) v)
+        let s = Irmin.Type.(unstage (to_bin_string t)) v in
+        if not (is_null len) then len <-@ String.length s;
+        s)
 
   let () =
     export "value_of_bin"
-      (ty @-> string @-> returning value)
-      (fun ty s ->
+      (ty @-> ptr char @-> int @-> returning value)
+      (fun ty s length ->
+        let length = if length < 0 then strlen s else length in
         let ty = Root.get ty in
+        let s = string_from_ptr s ~length in
         let x = Irmin.Type.(unstage (of_bin_string ty)) s |> Result.get_ok in
         Root.create x)
 

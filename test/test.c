@@ -5,7 +5,6 @@
 
 int main(int argc, char *argv[]) {
   puts("A");
-  // irmin_init(argv);
 
   AUTO IrminSchema *schema = irmin_schema_new("irf", NULL, NULL);
 
@@ -31,8 +30,9 @@ int main(int argc, char *argv[]) {
   AUTO IrminInfo *info = irmin_info_new(schema, "testing", NULL);
   assert(irmin_set(store, key, a, info));
 
-  char *s = irmin_value_to_string(ty, irmin_get(store, key));
+  char *s = irmin_value_to_string(ty, irmin_get(store, key), NULL);
   puts(s);
+  free(s);
 
   return 0;
 }
