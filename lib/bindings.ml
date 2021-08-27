@@ -28,8 +28,6 @@ type 'a store = (module Irmin.S with type t = 'a) * 'a
 
 let type_unit () = Root.create Irmin.Type.unit
 
-type 'a value = 'a Irmin.Type.t * 'a
-
 let value_unit () = Root.create ()
 
 let type_bool () = Root.create Irmin.Type.bool
@@ -44,10 +42,10 @@ let type_string () = Root.create Irmin.Type.string
 
 let value_string s = Root.create s
 
-let config_new s =
-  let _, config = Root.get s in
+let config_new schema =
+  let _, spec, _ = Root.get schema |> Irmin_unix.Resolver.Store.destruct in
   (*let spec = Irmin.Private.Conf.spec config in*)
-  Root.create config
+  Root.create (Irmin.Private.Conf.empty spec)
 
 let find_config_key config name =
   Irmin.Private.Conf.Spec.find_key (Irmin.Private.Conf.spec config) name
@@ -70,26 +68,29 @@ let config_set c key ty value =
   Root.set c config;
   ok
 
-let schema_new store hash contents config_path =
+let schema_new store hash contents =
   let hash = Option.map Irmin_unix.Resolver.Hash.find hash in
-  let s, config =
-    Irmin_unix.Resolver.load_config ?store ?hash ?contents ?config_path ()
-  in
-  let m, _, _ = Irmin_unix.Resolver.Store.destruct s in
-  Root.create (m, config)
+  let s, config = Irmin_unix.Resolver.load_config ?store ?hash ?contents () in
+  Root.create s
 
-let repo_new ctx config =
-  let (module Store : Irmin.S), _ = Root.get ctx in
+let repo_new schema config =
+  let (module Store : Irmin.S), _, _ =
+    Root.get schema |> Irmin_unix.Resolver.Store.destruct
+  in
   let config = Root.get config in
   Root.create (Lwt_main.run (Store.Repo.v config))
 
-let master ctx repo =
-  let (module Store : Irmin.S), _ = Root.get ctx in
+let master schema repo =
+  let (module Store : Irmin.S), _, _ =
+    Root.get schema |> Irmin_unix.Resolver.Store.destruct
+  in
   let repo = Root.get repo in
   Root.create ((module Store : Irmin.S), Lwt_main.run (Store.master repo))
 
-let of_branch ctx repo name =
-  let (module Store : Irmin.S), _ = Root.get ctx in
+let of_branch schema repo name =
+  let (module Store : Irmin.S), _, _ =
+    Root.get schema |> Irmin_unix.Resolver.Store.destruct
+  in
   let repo = Root.get repo in
   let branch = Irmin.Type.of_string Store.Branch.t name |> Result.get_ok in
   Root.create
@@ -170,15 +171,14 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
       (fun ty s ->
         let ty = Root.get ty in
         let x = Irmin.Type.(of_string ty) s |> Result.get_ok in
-        Root.create (ty, x))
+        Root.create x)
 
   let () =
     export "value_to_bin"
-      (value @-> returning (ptr char))
+      (value @-> returning string)
       (fun value ->
         let t, v = Root.get value in
-        Irmin.Type.(unstage (to_bin_string t)) v
-        |> CArray.of_string |> CArray.start)
+        Irmin.Type.(unstage (to_bin_string t)) v)
 
   let () =
     export "value_of_bin"
@@ -186,7 +186,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
       (fun ty s ->
         let ty = Root.get ty in
         let x = Irmin.Type.(unstage (of_bin_string ty)) s |> Result.get_ok in
-        Root.create (ty, x))
+        Root.create x)
 
   let () = export "type_free" (ty @-> returning void) free
 
@@ -203,8 +203,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     export "schema_new"
-      (string_opt @-> string_opt @-> string_opt @-> string_opt
-     @-> returning schema)
+      (string_opt @-> string_opt @-> string_opt @-> returning schema)
       schema_new
 
   let () = export "schema_free" (schema @-> returning void) free

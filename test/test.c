@@ -7,16 +7,17 @@ int main(int argc, char *argv[]) {
   puts("A");
   // irmin_init(argv);
 
-  AUTO IrminSchema *schema = irmin_schema_new("irf", NULL, NULL, NULL);
+  AUTO IrminSchema *schema = irmin_schema_new("irf", NULL, NULL);
 
   puts("B");
   AUTO IrminConfig *config = irmin_config_new(schema);
 
-  puts("C");
-
   AUTO IrminType *ty = irmin_type_string();
   AUTO IrminValue *root = irmin_value_string("./tmp2");
+
   assert(irmin_config_set(config, "root", ty, root));
+
+  puts("C");
 
   AUTO IrminRepo *repo = irmin_repo_new(schema, config);
 
