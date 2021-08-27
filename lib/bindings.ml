@@ -30,40 +30,35 @@ let type_unit () = Root.create Irmin.Type.unit
 
 type 'a value = 'a Irmin.Type.t * 'a
 
-let value_unit () = Root.create (Irmin.Type.unit, ())
+let value_unit () = Root.create ()
 
 let type_bool () = Root.create Irmin.Type.bool
 
-let value_bool b = Root.create (Irmin.Type.bool, b)
+let value_bool b = Root.create b
 
 let type_int () = Root.create Irmin.Type.int
 
-let value_int i = Root.create (Irmin.Type.int, i)
+let value_int i = Root.create i
 
 let type_string () = Root.create Irmin.Type.string
 
-let value_string s = Root.create (Irmin.Type.string, s)
+let value_string s = Root.create s
 
 let config_new s =
-  let _, config = Root.get (coerce (ptr void) (ptr void) s) in
-  let spec = Irmin.Private.Conf.spec config in
-  Root.create (Irmin.Private.Conf.empty spec)
+  let _, config = Root.get s in
+  (*let spec = Irmin.Private.Conf.spec config in*)
+  Root.create config
 
-let find_config_key name =
-  let specs = Irmin.Private.Conf.Spec.list () in
-  Seq.fold_left
-    (fun acc spec ->
-      match acc with
-      | Some _ as x -> x
-      | None -> Irmin.Private.Conf.Spec.find_key spec name)
-    None specs
+let find_config_key config name =
+  Irmin.Private.Conf.Spec.find_key (Irmin.Private.Conf.spec config) name
 
 let type_name x = Fmt.to_to_string Irmin.Type.pp_ty x
 
-let config_set c key value =
+let config_set c key ty value =
   let config : Irmin.config = Root.get c in
-  let k = find_config_key key in
-  let t, value = Root.get value in
+  let k = find_config_key config key in
+  let t = Root.get ty in
+  let value = Root.get value in
   let ok, config =
     match k with
     | None -> (false, config)
@@ -114,7 +109,7 @@ let get store key =
   let (module Store : Irmin.S), store = Root.get store in
   let key = Root.get key in
   let x = Lwt_main.run (Store.find store key) in
-  match x with Some x -> Root.create (Store.contents_t, x) | None -> null
+  match x with Some x -> Root.create x | None -> null
 
 let remove store key =
   let (module Store : Irmin.S), store = Root.get store in
@@ -132,7 +127,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
       (fun schema arr ->
         let rec loop i acc =
           match !@(arr +@ i) with
-          | None -> acc
+          | None -> List.rev acc
           | Some x -> loop (i + 1) (x :: acc)
         in
         let l = loop 0 [] in
@@ -158,16 +153,15 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
 
   let () = export "type_string" (void @-> returning ty) type_string
 
-  let () = export "value_string" (ptr char @-> returning value) value_string
+  let () = export "value_string" (string @-> returning value) value_string
 
   let () =
     export "value_to_string"
-      (value @-> returning string)
-      (fun value ->
-        let t, v = Root.get value in
-
+      (ty @-> value @-> returning string)
+      (fun ty value ->
+        let t = Root.get ty in
+        let v = Root.get value in
         let s = Irmin.Type.to_string t v in
-        print_endline s;
         s)
 
   let () =
@@ -204,7 +198,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     export "config_set"
-      (config @-> string @-> value @-> returning bool)
+      (config @-> string @-> ty @-> value @-> returning bool)
       config_set
 
   let () =
