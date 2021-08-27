@@ -24,6 +24,8 @@ let info = ptr (typedef void "IrminInfo")
 
 type schema = (module Irmin.S) * Irmin.config
 
+type 'a store = (module Irmin.S with type t = 'a) * 'a
+
 let type_unit () = Root.create Irmin.Type.unit
 
 type 'a value = 'a Irmin.Type.t * 'a
@@ -42,8 +44,8 @@ let type_string () = Root.create Irmin.Type.string
 
 let value_string s = Root.create (Irmin.Type.string, s)
 
-let config_new schema =
-  let _, config = Root.get schema in
+let config_new s =
+  let _, config = Root.get (coerce (ptr void) (ptr void) s) in
   let spec = Irmin.Private.Conf.spec config in
   Root.create (Irmin.Private.Conf.empty spec)
 
@@ -153,6 +155,36 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
   let () = export "type_string" (void @-> returning ty) type_string
 
   let () = export "value_string" (string @-> returning value) value_string
+
+  let () =
+    export "value_to_string"
+      (value @-> returning string)
+      (fun value ->
+        let t, v = Root.get value in
+        Irmin.Type.to_string t v)
+
+  let () =
+    export "value_of_string"
+      (ty @-> string @-> returning value)
+      (fun ty s ->
+        let ty = Root.get ty in
+        let x = Irmin.Type.(of_string ty) s |> Result.get_ok in
+        Root.create (ty, x))
+
+  let () =
+    export "value_to_bin"
+      (value @-> returning string)
+      (fun value ->
+        let t, v = Root.get value in
+        Irmin.Type.(unstage (to_bin_string t)) v)
+
+  let () =
+    export "value_of_bin"
+      (ty @-> string @-> returning value)
+      (fun ty s ->
+        let ty = Root.get ty in
+        let x = Irmin.Type.(unstage (of_bin_string ty)) s |> Result.get_ok in
+        Root.create (ty, x))
 
   let () = export "type_free" (ty @-> returning void) free
 
