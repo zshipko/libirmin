@@ -6,6 +6,7 @@ let generate dirname =
   let h_fd = open_out (path "irmin.h") in
   let stubs = (module Bindings.Stubs : Cstubs_inverted.BINDINGS) in
   let writeln fd s = output_string fd (s ^ "\n") in
+  let types fd names = List.iter (fun n -> writeln fd (Printf.sprintf "typedef struct %s %s;" n n)) names in
   begin
     (* Generate the ML module that links in the generated C. *)
     Cstubs_inverted.write_ml
@@ -15,19 +16,39 @@ let generate dirname =
     Format.fprintf (Format.formatter_of_out_channel c_fd)
     "#include \"irmin.h\"@\n%a"
       (Cstubs_inverted.write_c ~prefix) stubs;
-    writeln c_fd "void irmin_init(char *argv[]){ caml_startup(argv);}";
+    writeln c_fd {|
+void irmin_init(int argc, char* argv[], char* envp[]){
+  caml_startup(argv);
+}
+
+#ifdef __APPLE__
+__attribute__((section("__DATA,__mod_init_func"))) typeof(irmin_init) *__init = irmin_init;
+#else
+__attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[]) = &irmin_init;
+#endif
+    |};
 
     (* Generate the C header file that exports OCaml functions. *)
     writeln h_fd "#pragma once";
-    writeln h_fd "typedef struct IrminContext IrminContext;";
-    writeln h_fd "typedef struct IrminType IrminType;";
-    writeln h_fd "typedef struct IrminValue IrminValue;";
-    writeln h_fd "typedef struct IrminConfig IrminConfig;";
-    writeln h_fd "typedef struct IrminRepo IrminRepo;";
-    writeln h_fd "typedef struct Irmin Irmin;";
-    writeln h_fd "void irmin_init(char *argv[]);";
+    types h_fd [
+      "IrminSchema";
+      "IrminType";
+      "IrminValue";
+      "IrminConfig";
+      "IrminRepo";
+      "Irmin";
+      "IrminKey";
+      "IrminTree";
+      "IrminCommit";
+      "IrminInfo";
+    ];
+
     Cstubs_inverted.write_c_header
       (Format.formatter_of_out_channel h_fd) ~prefix stubs;
+    writeln h_fd {|
+static void _irmin_cleanup(void *p) { if (p) { irmin_free(*(void**)p); p = (void*)0;} };
+#define AUTO __attribute__((cleanup(_irmin_cleanup)))
+    |};
 
   end;
   close_out h_fd;
