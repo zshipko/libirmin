@@ -177,7 +177,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
           match k with
           | None -> (false, config)
           | Some (Irmin.Private.Conf.K k) ->
-              let t : a ty = Root.get ty in
+              let t : a Irmin.Type.t = Root.get ty in
               if type_name t <> type_name (Irmin.Private.Conf.ty k) then
                 (false, config)
               else
@@ -218,7 +218,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.S), _, _ =
           Root.get schema |> Irmin_unix.Resolver.Store.destruct
         in
-        let repo : Store.repo repo = Root.get repo in
+        let repo : Store.repo = Root.get repo in
         Root.create ((module Store : Irmin.S), Lwt_main.run (Store.master repo)))
 
   let () =
@@ -228,7 +228,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.S), _, _ =
           Root.get schema |> Irmin_unix.Resolver.Store.destruct
         in
-        let repo : Store.repo repo = Root.get repo in
+        let repo : Store.repo = Root.get repo in
         let branch =
           Irmin.Type.of_string Store.Branch.t name |> Result.get_ok
         in
@@ -241,8 +241,8 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
       (fun store key value info ->
         let (module Store : Irmin.S), store = Root.get store in
         let info = Root.get info in
-        let key : Store.key key = Root.get key in
-        let value : Store.contents value = Root.get value in
+        let key : Store.key = Root.get key in
+        let value : Store.contents = Root.get value in
         let x = Lwt_main.run (Store.set store key value ~info) in
         match x with Ok () -> true | Error _ -> false)
 
@@ -251,7 +251,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
       (store @-> key @-> returning value)
       (fun store key ->
         let (module Store : Irmin.S), store = Root.get store in
-        let key : Store.key key = Root.get key in
+        let key : Store.key = Root.get key in
         let x = Lwt_main.run (Store.find store key) in
         match x with Some x -> Root.create x | None -> null)
 
@@ -262,7 +262,7 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.S), store = Root.get store in
         let module Info = Irmin_unix.Info (Store.Info) in
         let info = Root.get info in
-        let key : Store.key key = Root.get key in
+        let key : Store.key = Root.get key in
         Lwt_main.run (Store.remove store key ~info) |> Result.get_ok)
 
   let () = export "free" (store @-> returning void) free
