@@ -2,7 +2,7 @@ open Ctypes
 open Types
 
 let find_config_key config name =
-  Irmin.Private.Conf.Spec.find_key (Irmin.Private.Conf.spec config) name
+  Irmin.Backend.Conf.Spec.find_key (Irmin.Backend.Conf.spec config) name
 
 let type_name x = Fmt.to_to_string Irmin.Type.pp_ty x
 
@@ -162,8 +162,8 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
         let _, spec, _ =
           Root.get schema |> Irmin_unix.Resolver.Store.destruct
         in
-        (*let spec = Irmin.Private.Conf.spec config in*)
-        Root.create (Irmin.Private.Conf.empty spec))
+        (*let spec = Irmin.Backend.Conf.spec config in*)
+        Root.create (Irmin.Backend.Conf.empty spec))
 
   let () = export "config_free" (config @-> returning void) free
 
@@ -176,13 +176,13 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
         let ok, config =
           match k with
           | None -> (false, config)
-          | Some (Irmin.Private.Conf.K k) ->
+          | Some (Irmin.Backend.Conf.K k) ->
               let t : a Irmin.Type.t = Root.get ty in
-              if type_name t <> type_name (Irmin.Private.Conf.ty k) then
+              if type_name t <> type_name (Irmin.Backend.Conf.ty k) then
                 (false, config)
               else
                 let value = Root.get value in
-                (true, Irmin.Private.Conf.add config k value)
+                (true, Irmin.Backend.Conf.add config k value)
         in
         Root.set c config;
         ok)
