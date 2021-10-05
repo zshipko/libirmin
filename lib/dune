@@ -1,8 +1,3 @@
-(library
- (name bindings)
- (libraries irmin-unix ctypes.foreign)
- (modules bindings types))
-
 (rule
  (targets irmin_bindings.ml irmin.c irmin.h)
  (deps    (:gen ../gen/generate.exe))
@@ -10,7 +5,7 @@
 
 (executable
  (name libirmin)
- (libraries bindings)
+ (libraries libirmin_bindings)
  (modes (native shared_object))
  (modules libirmin irmin_bindings)
  (foreign_stubs (language c) (names irmin)))

@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   AUTO IrminInfo *info = irmin_info_new(schema, "testing", NULL);
   assert(irmin_set(store, key, a, info));
 
-  char *s = irmin_value_to_string(ty, irmin_get(store, key), NULL);
+  char *s = irmin_value_get_string(irmin_get(store, key), NULL);
   puts(s);
   free(s);
 

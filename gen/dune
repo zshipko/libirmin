@@ -1,4 +1,4 @@
 (executable
  (name generate)
  (modules generate)
- (libraries cmdliner unix bindings))
+ (libraries cmdliner unix libirmin_bindings))

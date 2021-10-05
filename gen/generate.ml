@@ -4,7 +4,7 @@ let generate dirname =
   let ml_fd = open_out (path "irmin_bindings.ml") in
   let c_fd = open_out (path "irmin.c") in
   let h_fd = open_out (path "irmin.h") in
-  let stubs = (module Bindings.Stubs : Cstubs_inverted.BINDINGS) in
+  let stubs = (module Libirmin_bindings.Stubs : Cstubs_inverted.BINDINGS) in
   let writeln fd s = output_string fd (s ^ "\n") in
   let types fd names = List.iter (fun n -> writeln fd (Printf.sprintf "typedef struct %s %s;" n n)) names in
   begin
@@ -30,6 +30,7 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
 
     (* Generate the C header file that exports OCaml functions. *)
     writeln h_fd "#pragma once";
+    writeln h_fd "#include <stdbool.h>";
     types h_fd [
       "IrminSchema";
       "IrminType";

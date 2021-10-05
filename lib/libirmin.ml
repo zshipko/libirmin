@@ -1,1 +1,1 @@
-include Bindings.Stubs(Irmin_bindings)
+include Libirmin_bindings.Stubs (Irmin_bindings)
