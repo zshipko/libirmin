@@ -6,9 +6,11 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (schema @-> ptr string_opt @-> returning key)
       (fun schema arr ->
         let rec loop i acc =
-          match !@(arr +@ i) with
-          | None -> List.rev acc
-          | Some x -> loop (i + 1) (x :: acc)
+          if is_null arr then acc
+          else
+            match !@(arr +@ i) with
+            | None -> List.rev acc
+            | Some x -> loop (i + 1) (x :: acc)
         in
         let l = loop 0 [] in
         let (module Store : Irmin.S), _ = Root.get schema in

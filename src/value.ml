@@ -117,6 +117,15 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create (a, b))
 
   let () =
+    fn "value_triple"
+      (value @-> value @-> value @-> returning value)
+      (fun a b c ->
+        let a = Root.get a in
+        let b = Root.get b in
+        let c = Root.get c in
+        Root.create (a, b, c))
+
+  let () =
     fn "value_of_string"
       (ty @-> ptr char @-> int @-> returning value)
       (fun ty s length ->

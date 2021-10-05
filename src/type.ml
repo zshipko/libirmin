@@ -47,10 +47,20 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "type_pair"
-      (ty @-> returning ty)
-      (fun elem ->
-        let elem : 'a Irmin.Type.t = Root.get elem in
-        Root.create (Irmin.Type.option elem))
+      (ty @-> ty @-> returning ty)
+      (fun a b ->
+        let a : 'a Irmin.Type.t = Root.get a in
+        let b : 'b Irmin.Type.t = Root.get b in
+        Root.create (Irmin.Type.pair a b))
+
+  let () =
+    fn "type_triple"
+      (ty @-> ty @-> ty @-> returning ty)
+      (fun a b c ->
+        let a : 'a Irmin.Type.t = Root.get a in
+        let b : 'b Irmin.Type.t = Root.get b in
+        let c : 'c Irmin.Type.t = Root.get c in
+        Root.create (Irmin.Type.triple a b c))
 
   let () = fn "type_free" (ty @-> returning void) free
 end
