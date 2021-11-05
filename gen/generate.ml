@@ -38,7 +38,7 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
       "IrminConfig";
       "IrminRepo";
       "Irmin";
-      "IrminKey";
+      "IrminPath";
       "IrminTree";
       "IrminCommit";
       "IrminInfo";

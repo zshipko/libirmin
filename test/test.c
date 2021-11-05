@@ -20,17 +20,17 @@ int main(int argc, char *argv[]) {
 
   AUTO IrminRepo *repo = irmin_repo_new(schema, config);
 
-  AUTO Irmin *store = irmin_master(schema, repo);
+  AUTO Irmin *store = irmin_main(schema, repo);
 
   char *x = "123";
   AUTO IrminValue *a = irmin_value_string(x);
 
   char *k[] = {"a", "b", "c", NULL};
-  AUTO IrminKey *key = irmin_key(schema, k);
+  AUTO IrminPath *path = irmin_path(schema, k);
   AUTO IrminInfo *info = irmin_info_new(schema, "testing", NULL);
-  assert(irmin_set(store, key, a, info));
+  assert(irmin_set(store, path, a, info));
 
-  char *s = irmin_value_get_string(irmin_get(store, key), NULL);
+  char *s = irmin_value_get_string(irmin_get(store, path), NULL);
   puts(s);
   free(s);
 

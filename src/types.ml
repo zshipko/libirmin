@@ -18,7 +18,7 @@ type schema = Irmin_unix.Resolver.Store.t
 
 let schema = ptr (typedef void "IrminSchema")
 
-let key = ptr (typedef void "IrminKey")
+let path = ptr (typedef void "IrminPath")
 
 let tree = ptr (typedef void "IrminTree")
 
