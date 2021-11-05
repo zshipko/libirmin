@@ -6,7 +6,7 @@
 int main(int argc, char *argv[]) {
   puts("A");
 
-  AUTO IrminSchema *schema = irmin_schema_new("irf", NULL, NULL);
+  AUTO IrminSchema *schema = irmin_schema_pack(NULL, NULL);
 
   puts("B");
   AUTO IrminConfig *config = irmin_config_new(schema);
