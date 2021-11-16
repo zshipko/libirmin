@@ -42,6 +42,7 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
       "IrminTree";
       "IrminCommit";
       "IrminInfo";
+      "IrminHash";
     ];
 
     Cstubs_inverted.write_c_header

@@ -156,5 +156,25 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         | Ok x -> Root.create x
         | Error _ -> null)
 
+  let () =
+    fn "value_to_json"
+      (value @-> ptr int @-> returning string)
+      (fun value len ->
+        let t, v = Root.get value in
+        let s = Irmin.Type.(to_json_string t) v in
+        if not (is_null len) then len <-@ String.length s;
+        s)
+
+  let () =
+    fn "value_of_json"
+      (ty @-> ptr char @-> int @-> returning value)
+      (fun ty s length ->
+        let length = if length < 0 then strlen s else length in
+        let ty = Root.get ty in
+        let s = string_from_ptr s ~length in
+        match Irmin.Type.(of_json_string ty) s with
+        | Ok x -> Root.create x
+        | Error _ -> null)
+
   let () = fn "value_free" (value @-> returning void) free
 end

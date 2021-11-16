@@ -24,4 +24,6 @@ let tree = ptr (typedef void "IrminTree")
 
 let commit = ptr (typedef void "IrminCommit")
 
+let hash = ptr (typedef void "IrminHash")
+
 let info = ptr (typedef void "IrminInfo")
