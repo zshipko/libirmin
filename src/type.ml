@@ -46,6 +46,16 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create (Irmin.Type.option elem))
 
   let () =
+    fn "type_json"
+      (void @-> returning ty)
+      (fun () -> Root.create Irmin.Contents.Json.t)
+
+  let () =
+    fn "type_json_value"
+      (void @-> returning ty)
+      (fun () -> Root.create Irmin.Contents.Json_value.t)
+
+  let () =
     fn "type_pair"
       (ty @-> ty @-> returning ty)
       (fun a b ->
