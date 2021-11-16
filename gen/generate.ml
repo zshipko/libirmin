@@ -31,6 +31,7 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
     (* Generate the C header file that exports OCaml functions. *)
     writeln h_fd "#pragma once";
     writeln h_fd "#include <stdbool.h>";
+    writeln h_fd "#include <stdint.h>";
     types h_fd [
       "IrminSchema";
       "IrminType";

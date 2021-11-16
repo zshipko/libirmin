@@ -77,6 +77,27 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Lwt_main.run (Store.Head.set store commit))
 
   let () =
+    fn "fast_forward"
+      (store @-> commit @-> returning bool)
+      (fun store commit ->
+        let (module Store : Irmin.S), store = Root.get store in
+        let commit : Store.commit = Root.get commit in
+        let res = Lwt_main.run (Store.Head.fast_forward store commit) in
+        match res with Ok () -> true | Error _ -> false)
+
+  let () =
+    fn "merge"
+      (store @-> string @-> info @-> returning bool)
+      (fun store branch info ->
+        let info = Root.get info in
+        let (module Store : Irmin.S), store = Root.get store in
+        let branch =
+          Irmin.Type.of_string Store.branch_t branch |> Result.get_ok
+        in
+        let res = Lwt_main.run (Store.merge_with_branch store ~info branch) in
+        match res with Ok () -> true | Error _ -> false)
+
+  let () =
     fn "set"
       (store @-> path @-> value @-> info @-> returning bool)
       (fun store path value info ->
@@ -85,6 +106,40 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let path : Store.path = Root.get path in
         let value : Store.contents = Root.get value in
         let x = Lwt_main.run (Store.set store path value ~info) in
+        match x with Ok () -> true | Error _ -> false)
+
+  let () =
+    fn "test_and_set"
+      (store @-> path @-> value @-> value @-> info @-> returning bool)
+      (fun store path test set info ->
+        let (module Store : Irmin.S), store = Root.get store in
+        let info = Root.get info in
+        let path : Store.path = Root.get path in
+        let test : Store.contents option =
+          if test = null then None else Some (Root.get test)
+        in
+        let set : Store.contents option =
+          if set = null then None else Some (Root.get set)
+        in
+        let x = Lwt_main.run (Store.test_and_set store path ~test ~set ~info) in
+        match x with Ok () -> true | Error _ -> false)
+
+  let () =
+    fn "test_and_set_tree"
+      (store @-> path @-> tree @-> tree @-> info @-> returning bool)
+      (fun store path test set info ->
+        let (module Store : Irmin.S), store = Root.get store in
+        let info = Root.get info in
+        let path : Store.path = Root.get path in
+        let test : Store.tree option =
+          if test = null then None else Some (Root.get test)
+        in
+        let set : Store.tree option =
+          if set = null then None else Some (Root.get set)
+        in
+        let x =
+          Lwt_main.run (Store.test_and_set_tree store path ~test ~set ~info)
+        in
         match x with Ok () -> true | Error _ -> false)
 
   let () =
