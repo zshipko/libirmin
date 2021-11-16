@@ -43,14 +43,14 @@ class Value:
     @staticmethod
     def json(d: dict) -> 'Value':
         t = Type.json()
-        s = json.dumps(d)
-        return Value(lib.irmin_value_of_json(t.type, s, len(s)), t)
+        s = str.encode(json.dumps(d))
+        return Value(lib.irmin_value_of_string(t.type, s, len(s)), t)
 
     @staticmethod
     def json_value(d: Any) -> 'Value':
         t = Type.json_value()
-        s = json.dumps(d)
-        return Value(lib.irmin_value_of_json(t.type, s, len(s)), t)
+        s = str.encode(json.dumps(d))
+        return Value(lib.irmin_value_of_string(t.type, s, len(s)), t)
 
     def to_string(self) -> str:
         s = lib.irmin_value_get_string(self.value, ffi.NULL)
@@ -81,7 +81,8 @@ class Contents:
 class Schema:
     content_types = {
         "string": Contents(Value.string, Type.string(), str),
-        "json": Contents(Value.json, Type.json(), dict)
+        "json": Contents(Value.json, Type.json(), dict),
+        "json-value": Contents(Value.json_value, Type.json_value(), Any)
     }
 
     def __init__(self, ptr, c: str):
@@ -259,14 +260,14 @@ class Store:
         lib.irmin_set_head(self.store, c.commit)
 
 
-git = Schema.git()
+git = Schema.git('json')
 config = Config(git)
-config.root("./test2")
+config.root("./test3")
 repo = Repo(config)
 store = Store(repo)
-store["test", "a"] = "cool"
+store["test", "a"] = {"x": "cool"}
 c = store.head
-store["test", "a"] = "ok"
+store["test", "a"] = {"x": "ok"}
 print(store["test", "a"])
 if c is not None:
     store.revert(c)
