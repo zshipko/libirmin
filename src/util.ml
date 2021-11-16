@@ -7,7 +7,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let type_name x = Fmt.to_to_string Irmin.Type.pp_ty x
 
-  let free store = Root.release store
+  let free store = if not (is_null store) then Root.release store
 
   let strlen ptr =
     let rec loop i = if !@(ptr +@ i) = char_of_int 0 then i else loop (i + 1) in

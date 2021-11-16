@@ -30,6 +30,11 @@ int main(int argc, char *argv[]) {
   AUTO IrminInfo *info = irmin_info_new(schema, "testing", NULL);
   assert(irmin_set(store, path, a, info));
 
+  AUTO IrminType *json = irmin_type_json();
+  IrminValue *j1 = irmin_value_of_string(json, "{\"a\": 1}", -1);
+  assert(j1 != NULL);
+  irmin_value_free(j1);
+
   char *s = irmin_value_get_string(irmin_get(store, path), NULL);
   puts(s);
   free(s);
