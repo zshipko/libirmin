@@ -62,7 +62,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "get_head"
-      (store @-> returning hash)
+      (store @-> returning commit)
       (fun store ->
         let (module Store : Irmin.S), store = Root.get store in
         let commit = Lwt_main.run (Store.Head.find store) in
