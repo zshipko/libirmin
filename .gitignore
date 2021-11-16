@@ -2,3 +2,9 @@ out
 test/test
 tmp*
 compile_flags.txt
+py/*.c
+py/*.so
+py/*.o
+py/build
+py/dist
+py/irmin.egg-info
