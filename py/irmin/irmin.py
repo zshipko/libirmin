@@ -1,5 +1,6 @@
 from _irmin_ffi import ffi, lib  # type: ignore
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Any
+import json
 
 
 class Type:
@@ -13,6 +14,14 @@ class Type:
     @staticmethod
     def string() -> 'Type':
         return Type(lib.irmin_type_string())
+
+    @staticmethod
+    def json() -> 'Type':
+        return Type(lib.irmin_type_json())
+
+    @staticmethod
+    def json_value() -> 'Type':
+        return Type(lib.irmin_type_json_value())
 
     def __del__(self):
         lib.irmin_type_free(self.type)
@@ -30,6 +39,18 @@ class Value:
     @staticmethod
     def string(s: str) -> 'Value':
         return Value(lib.irmin_value_string(str.encode(s)), Type.string())
+
+    @staticmethod
+    def json(d: dict) -> 'Value':
+        t = Type.json()
+        s = json.dumps(d)
+        return Value(lib.irmin_value_of_json(t.type, s, len(s)), t)
+
+    @staticmethod
+    def json_value(d: Any) -> 'Value':
+        t = Type.json_value()
+        s = json.dumps(d)
+        return Value(lib.irmin_value_of_json(t.type, s, len(s)), t)
 
     def to_string(self) -> str:
         s = lib.irmin_value_get_string(self.value, ffi.NULL)
@@ -58,7 +79,10 @@ class Contents:
 
 
 class Schema:
-    content_types = {"string": Contents(Value.string, Type.string(), str)}
+    content_types = {
+        "string": Contents(Value.string, Type.string(), str),
+        "json": Contents(Value.json, Type.json(), dict)
+    }
 
     def __init__(self, ptr, c: str):
         self.schema = ptr
