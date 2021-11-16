@@ -21,6 +21,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         in
         Store.Path.v l |> Root.create)
 
+  let () = fn "path_free" (path @-> returning void) free
+
   let () =
     fn "main"
       (schema @-> repo @-> returning store)
