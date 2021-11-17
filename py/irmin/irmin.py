@@ -1,5 +1,5 @@
 from _irmin_ffi import ffi, lib  # type: ignore
-from typing import Optional, Sequence, Any, List
+from typing import Optional, Sequence, Any, List, Union
 import json
 
 
@@ -113,8 +113,12 @@ class Schema:
 
 
 class Config:
-    def __init__(self, schema: Schema):
-        self.schema = schema
+    def __init__(self, backend: Union[str, Schema], *args, **kwargs):
+        if type(backend) == str:
+            f = getattr(Schema, backend)
+            self.schema = f(*args, **kwargs)
+        else:
+            self.schema = backend
         self.config = lib.irmin_config_new(self.schema.schema)
 
     def root(self, root: str):

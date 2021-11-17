@@ -8,3 +8,5 @@ py/*.o
 py/build
 py/dist
 py/irmin.egg-info
+.eggs
+__pycache__

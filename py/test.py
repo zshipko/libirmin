@@ -1,7 +1,6 @@
-from irmin import Schema, Config, Store, Commit, Repo
+from irmin import Config, Store, Commit, Repo
 
-git = Schema.git('json')
-config = Config(git)
+config = Config(backend='git', contents='json')
 config.root("./test3")
 repo = Repo(config)
 store = Store(repo)
