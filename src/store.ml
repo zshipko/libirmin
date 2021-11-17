@@ -1,3 +1,5 @@
+open Lwt.Infix
+
 module Make (I : Cstubs_inverted.INTERNAL) = struct
   open Util.Make (I)
 
@@ -42,8 +44,9 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.S), _, _ =
           Root.get schema |> Irmin_unix.Resolver.Store.destruct
         in
-        let repo : Store.repo = Root.get repo in
-        Root.create ((module Store : Irmin.S), Lwt_main.run (Store.main repo)))
+        let repo : Store.repo Lwt.t = Root.get repo in
+        Root.create
+          ((module Store : Irmin.S), Lwt_main.run (repo >>= Store.main)))
 
   let () =
     fn "of_branch"
@@ -52,13 +55,13 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.S), _, _ =
           Root.get schema |> Irmin_unix.Resolver.Store.destruct
         in
-        let repo : Store.repo = Root.get repo in
+        let repo : Store.repo Lwt.t = Root.get repo in
         match Irmin.Type.of_string Store.Branch.t name with
         | Error _ -> null
         | Ok branch ->
             Root.create
               ( (module Store : Irmin.S),
-                Lwt_main.run (Store.of_branch repo branch) ))
+                Lwt_main.run (repo >>= fun r -> Store.of_branch r branch) ))
 
   let () =
     fn "get_head"
