@@ -10,4 +10,4 @@ dist
 irmin.egg-info
 .eggs
 __pycache__
-_irmin_ffi.*
+py/irmin/irmin.h

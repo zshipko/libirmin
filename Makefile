@@ -8,14 +8,16 @@ endif
 
 .PHONY: build
 build:
-	@rm -rf irmin.h libirmin.$(SOEXT)
+	@rm -rf irmin.h libirmin.$(SOEXT) py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 	dune build
 	cp _build/default/lib/irmin.h  .
 	cp _build/default/lib/libirmin.$(SOEXT) .
+	cp _build/default/lib/irmin.h  py/irmin
+	cp _build/default/lib/libirmin.$(SOEXT) py/irmin
 
 clean:
 	@dune clean
-	@rm -rf irmin.h libirmin.$(SOEXT)
+	@rm -rf libirmin.$(SOEXT) py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 
 install:
 	install irmin.h $(PREFIX)/include
