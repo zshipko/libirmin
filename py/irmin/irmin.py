@@ -1,5 +1,5 @@
 from _irmin_ffi import ffi, lib  # type: ignore
-from typing import Optional, Sequence, Any
+from typing import Optional, Sequence, Any, List
 import json
 
 
@@ -175,6 +175,23 @@ class Hash:
         lib.irmin_hash_free(self.hash)
 
 
+class Info:
+    def __init__(self, schema: Schema, i):
+        self.schema = schema
+        self.info = i
+
+    @staticmethod
+    def new(schema, author, message):
+        return Info(
+            schema,
+            lib.irmin_info_new(schema.schema, str.encode(author),
+                               str.encode(message)))
+
+    @property
+    def date(self) -> int:
+        return lib.irmin_info_date(self.schema.schema, self.info)
+
+
 class Commit:
     def __init__(self, schema: Schema, c):
         self.schema = schema
@@ -191,6 +208,16 @@ class Commit:
         if c == ffi.NULL:
             return None
         return Commit(repo.schema, c)
+
+    @property
+    def parents(self) -> List['Commit']:
+        n = lib.irmin_commit_parents_length(self.schema.schema, self.commit)
+        d = [
+            Commit(self.schema,
+                   lib.irmin_commit_parent(self.schema.schema, self.commit, i))
+            for i in range(n)
+        ]
+        return d
 
     def __del__(self):
         lib.irmin_commit_free(self.commit)
@@ -239,14 +266,18 @@ class Store:
         return Value(x, self.schema.contents.type)
 
     def __setitem__(self, key: Sequence[str], value):
+        return self.set(key, value)
+
+    def set(self,
+            key: Sequence[str],
+            value,
+            info: Optional[Info] = None) -> bool:
         path = Path(self.repo.config.schema, *key)
         value = self.schema.contents.f(value)
         info = lib.irmin_info_new(self.repo.config.schema.schema, b"irmin",
                                   b"set")
         x = lib.irmin_set(self.store, path.path, value.value, info)
         lib.irmin_info_free(info)
-        if x == ffi.NULL:
-            return None
         return x
 
     @property
@@ -258,21 +289,3 @@ class Store:
 
     def revert(self, c: Commit):
         lib.irmin_set_head(self.store, c.commit)
-
-
-git = Schema.git('json')
-config = Config(git)
-config.root("./test3")
-repo = Repo(config)
-store = Store(repo)
-store["test", "a"] = {"x": "cool"}
-c = store.head
-store["test", "a"] = {"x": "ok"}
-print(store["test", "a"])
-if c is not None:
-    store.revert(c)
-print(store["test", "a"])
-head = store.head
-if head is not None:
-    print(head.hash)
-    print(Commit.of_hash(repo, head.hash))
