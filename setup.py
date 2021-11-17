@@ -1,4 +1,6 @@
 from setuptools import setup
+
+from distutils.command.install import install as _install
 from distutils.command.build import build as _build
 import subprocess
 import platform
@@ -8,6 +10,12 @@ class build(_build):
     def run(self):
         subprocess.call(['make'])
         _build.run(self)
+
+
+class install(_install):
+    def run(self):
+        subprocess.call(['make'])
+        _install.run(self)
 
 
 def with_shared_object_ext(base):
@@ -28,5 +36,8 @@ setup(
     setup_requires=["cffi>=1.0.0"],
     cffi_modules=["py/irmin/irmin_ffi.py:ffi"],
     install_requires=["cffi>=1.0.0"],
-    cmdclass={'build': build},
+    cmdclass={
+        'build': build,
+        'install': install
+    },
 )
