@@ -272,15 +272,18 @@ class Store:
     def __setitem__(self, key: Sequence[str], value):
         return self.set(key, value)
 
+    def info(self, author: str = "", message: str = "") -> Info:
+        return Info.new(self.schema, author, message)
+
     def set(self,
             key: Sequence[str],
             value,
             info: Optional[Info] = None) -> bool:
         path = Path(self.repo.config.schema, *key)
         value = self.schema.contents.f(value)
-        info = lib.irmin_info_new(self.repo.config.schema.schema, b"irmin",
-                                  b"set")
-        x = lib.irmin_set(self.store, path.path, value.value, info)
+        if info is None:
+            info = self.info("irmin", "set")
+        x = lib.irmin_set(self.store, path.path, value.value, info.info)
         lib.irmin_info_free(info)
         return x
 
@@ -293,3 +296,18 @@ class Store:
 
     def revert(self, c: Commit):
         lib.irmin_set_head(self.store, c.commit)
+
+    def fast_forward(self, c: Commit, info: Optional[Info] = None) -> bool:
+        if info is None:
+            info = self.info("irmin", "fast forward")
+        return lib.irmin_fast_forward(self.store, c.commit, info.info)
+
+    def merge_with_branch(self, branch: str, info: Optional[Info] = None):
+        if info is None:
+            info = self.info("irmin", "merge")
+        lib.irmin_merge_with_branch(self.store, str.encode(branch), info.info)
+
+    def merge_with_commit(self, commit: Commit, info: Optional[Info] = None):
+        if info is None:
+            info = self.info("irmin", "merge")
+        lib.irmin_merge_with_branch(self.store, commit.commit, info.info)
