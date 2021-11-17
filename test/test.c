@@ -1,4 +1,4 @@
-#include "../out/irmin.h"
+#include "../irmin.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
