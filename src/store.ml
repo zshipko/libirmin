@@ -86,7 +86,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         match res with Ok () -> true | Error _ -> false)
 
   let () =
-    fn "merge"
+    fn "merge_with_branch"
       (store @-> string @-> info @-> returning bool)
       (fun store branch info ->
         let info = Root.get info in
@@ -95,6 +95,16 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
           Irmin.Type.of_string Store.branch_t branch |> Result.get_ok
         in
         let res = Lwt_main.run (Store.merge_with_branch store ~info branch) in
+        match res with Ok () -> true | Error _ -> false)
+
+  let () =
+    fn "merge_with_commit"
+      (store @-> commit @-> info @-> returning bool)
+      (fun store commit info ->
+        let info = Root.get info in
+        let (module Store : Irmin.S), store = Root.get store in
+        let commit = Root.get commit in
+        let res = Lwt_main.run (Store.merge_with_commit store ~info commit) in
         match res with Ok () -> true | Error _ -> false)
 
   let () =
