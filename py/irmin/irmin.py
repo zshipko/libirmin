@@ -127,7 +127,7 @@ class Schema:
 
 class Config:
     def __init__(self, backend: Union[str, Schema], *args, **kwargs):
-        if type(backend) == str:
+        if isinstance(backend, str):
             f = getattr(Schema, backend)
             self.schema = f(*args, **kwargs)
         else:
@@ -296,8 +296,21 @@ class Store:
             return None
         return Value(x, self.schema.contents.type)
 
+    def tree(self, key: Sequence[str]):
+        path = Path(self.repo.config.schema, *key)
+        x = lib.irmin_get_tree(self.store, path.path)
+        if x == ffi.NULL:
+            return None
+        return Tree(self.schema, x)
+
     def __setitem__(self, key: Sequence[str], value):
+        if isinstance(value, Tree):
+            return self.set_tree(key, value)
         return self.set(key, value)
+
+    def __delitem__(self, key: Sequence[str]):
+        path = Path(self.repo.config.schema, *key)
+        ffi.irmin_remove(self.store, path.path)
 
     def info(self, author: str = "", message: str = "") -> Info:
         return Info.new(self.schema, author, message)
@@ -311,7 +324,16 @@ class Store:
         if info is None:
             info = self.info("irmin", "set")
         x = lib.irmin_set(self.store, path.path, value.value, info.info)
-        lib.irmin_info_free(info)
+        return x
+
+    def set_tree(self,
+                 key: Sequence[str],
+                 tree: Tree,
+                 info: Optional[Info] = None) -> bool:
+        path = Path(self.repo.config.schema, *key)
+        if info is None:
+            info = self.info("irmin", "set_tree")
+        x = lib.irmin_set_tree(self.store, path.path, tree.tree, info.info)
         return x
 
     @property

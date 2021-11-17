@@ -8,19 +8,18 @@ endif
 
 
 build:
-	@rm -rf out
-	@mkdir out
+	@rm -rf irmin.h libirmin.$(SOEXT)
 	dune build
-	cp _build/default/lib/irmin.h ./out
-	cp _build/default/lib/libirmin.$(SOEXT) ./out
+	cp _build/default/lib/irmin.h  .
+	cp _build/default/lib/libirmin.$(SOEXT) .
 
 clean:
 	@dune clean
-	@rm -rf out
+	@rm -rf irmin.h libirmin.$(SOEXT)
 
 install:
-	install out/irmin.h $(PREFIX)/include
-	install out/libirmin.$(SOEXT) $(PREFIX)/lib
+	install irmin.h $(PREFIX)/include
+	install libirmin.$(SOEXT) $(PREFIX)/lib
 
 uninstall:
 	rm -f $(PREFIX)/include/irmin.h
