@@ -52,11 +52,24 @@ class Value:
         s = str.encode(json.dumps(d))
         return Value(lib.irmin_value_of_string(t.type, s, len(s)), t)
 
-    def to_string(self) -> str:
+    def get_string(self) -> str:
         s = lib.irmin_value_get_string(self.value, ffi.NULL)
         st = ffi.string(s)
         lib.free(s)
         return bytes.decode(st)
+
+    def to_bin(self) -> str:
+        s = lib.irmin_value_to_bin(self.value, ffi.NULL)
+        st = ffi.string(s)
+        lib.free(s)
+        return st
+
+    @staticmethod
+    def from_bin(t: Type, b: bytes) -> Optional['Value']:
+        v = lib.irmin_value_of_bin(t.type, b, len(b))
+        if v == ffi.NULL:
+            return None
+        return Value(v, t)
 
     def __bytes__(self):
         s = lib.irmin_value_to_string(self.type.type, self.value, ffi.NULL)
@@ -194,6 +207,20 @@ class Info:
     @property
     def date(self) -> int:
         return lib.irmin_info_date(self.schema.schema, self.info)
+
+    @property
+    def author(self) -> str:
+        s = lib.irmin_info_author(self.schema.schema, self.info)
+        st = ffi.string(s)
+        ffi.free(s)
+        return bytes.decode(st)
+
+    @property
+    def message(self) -> str:
+        s = lib.irmin_info_message(self.schema.schema, self.info)
+        st = ffi.string(s)
+        ffi.free(s)
+        return bytes.decode(st)
 
 
 class Commit:
