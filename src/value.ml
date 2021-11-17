@@ -18,16 +18,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create (string_from_ptr s ~length))
 
   let () =
-    fn "value_to_string"
-      (ty @-> value @-> ptr int @-> returning string)
-      (fun ty value len ->
-        let t = Root.get ty in
-        let v = Root.get value in
-        let s = Irmin.Type.to_string t v in
-        if not (is_null len) then len <-@ String.length s;
-        s)
-
-  let () =
     fn "value_get_string"
       (value @-> ptr int @-> returning string)
       (fun value length ->
@@ -124,6 +114,16 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let b = Root.get b in
         let c = Root.get c in
         Root.create (a, b, c))
+
+  let () =
+    fn "value_to_string"
+      (ty @-> value @-> ptr int @-> returning string)
+      (fun ty value len ->
+        let t = Root.get ty in
+        let v = Root.get value in
+        let s = Irmin.Type.to_string t v in
+        if not (is_null len) then len <-@ String.length s;
+        s)
 
   let () =
     fn "value_of_string"

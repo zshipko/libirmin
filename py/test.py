@@ -18,3 +18,5 @@ head = store.head
 if head is not None:
     print(head.hash)
     print(Commit.of_hash(repo, head.hash))
+
+assert (store.mem_tree(["test"]))

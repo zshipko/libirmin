@@ -56,6 +56,15 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (fun () -> Root.create Irmin.Contents.Json_value.t)
 
   let () =
+    fn "type_path"
+      (schema @-> returning ty)
+      (fun schema ->
+        let (module Store : Irmin.S), _, _ =
+          Root.get schema |> Irmin_unix.Resolver.Store.destruct
+        in
+        Root.create Store.path_t)
+
+  let () =
     fn "type_pair"
       (ty @-> ty @-> returning ty)
       (fun a b ->

@@ -6,7 +6,7 @@ else
 	SOEXT?=so
 endif
 
-
+.PHONY: build
 build:
 	@rm -rf irmin.h libirmin.$(SOEXT)
 	dune build
