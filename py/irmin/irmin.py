@@ -1,4 +1,5 @@
 from .irmin_ffi import ffi, lib  # type: ignore
+
 from typing import Optional, Sequence, Any, List, Union
 import json
 
@@ -181,20 +182,22 @@ class Repo:
 
 
 class Path:
-    def __init__(self, schema: Schema, *args: str):
-        a = [
-            ffi.new("char[" + str(len(arg)) + "]", str.encode(arg))
-            for arg in args
-        ]
-        a.append(ffi.NULL)
-        d = ffi.new("char*[]", a)
-        self._path = lib.irmin_path(schema._schema, d)
+    def __init__(self, schema: Schema, ptr):
+        self.schema = schema
+        if isinstance(ptr, (tuple, list)):
+            a = [ffi.new("char[]", str.encode(arg)) for arg in ptr]
+            a.append(ffi.NULL)
+            x = ffi.new("char*[]", a)
+            ptr = lib.irmin_path(self.schema._schema, x)
+        self._path = ptr
 
     @staticmethod
     def wrap(schema: Schema, path: PathType) -> 'Path':
         if isinstance(path, Path):
             return path
-        return Path(schema, *path)
+        elif isinstance(path, str):
+            return Path(schema, [path])
+        return Path(schema, path)
 
     @staticmethod
     def from_string(schema: Schema, s: str) -> Optional['Path']:
@@ -260,6 +263,9 @@ class Info:
         ffi.free(s)
         return bytes.decode(st)
 
+    def __del__(self):
+        lib.irmin_info_free(self._info)
+
 
 class Commit:
     def __init__(self, schema: Schema, c):
@@ -303,17 +309,18 @@ class Tree:
         if t is not None:
             self._tree = t
         else:
-            self._tree = lib.irmin_tree_new(schema._schema)
+            self._tree = lib.irmin_tree_new(self.schema._schema)
 
-    def __setitem__(self, path: PathType, v) -> bool:
-        path = Path.wrap(self.schema, path)
+    def __setitem__(self, path: PathType, v):
         if isinstance(v, Tree):
             return self.set_tree(path, v)
-        value = self.schema.contents.f(v)
-        return lib.irmin_tree_add(self.schema._schema, self._tree, path._path,
-                                  value._value)
 
-    def __getitem__(self, path: PathType, v) -> Optional['Value']:
+        path = Path.wrap(self.schema, path)
+        value = self.schema.contents.f(v)
+        lib.irmin_tree_add(self.schema._schema, self._tree, path._path,
+                           value._value)
+
+    def __getitem__(self, path: PathType) -> Optional['Value']:
         path = Path.wrap(self.schema, path)
         v = lib.irmin_tree_find(self.schema._schema, self._tree, path._path)
         if v == ffi.NULL:
@@ -341,11 +348,13 @@ class Tree:
             return None
         return Tree(self.schema, x)
 
-    def set_tree(self, path: PathType, tree: 'Tree') -> bool:
+    def set_tree(self, path: PathType, tree: 'Tree'):
         path = Path.wrap(self.schema, path)
-        x = lib.irmin_tree_set_tree(self.schema._schema, self._tree,
-                                    path._path, tree._tree)
-        return x
+        lib.irmin_tree_set_tree(self.schema._schema, self._tree, path._path,
+                                tree._tree)
+
+    def __del__(self):
+        lib.irmin_tree_free(self._tree)
 
 
 class Store:
@@ -391,23 +400,21 @@ class Store:
     def info(self, author: str = "", message: str = "") -> Info:
         return Info.new(self.schema, author, message)
 
-    def set(self, path: PathType, value, info: Optional[Info] = None) -> bool:
+    def set(self, path: PathType, value, info: Optional[Info] = None):
         path = Path.wrap(self.schema, path)
         value = self.schema.contents.f(value)
         if info is None:
             info = self.info("irmin", "set")
-        x = lib.irmin_set(self._store, path._path, value._value, info._info)
-        return x
+        lib.irmin_set(self._store, path._path, value._value, info._info)
 
     def set_tree(self,
                  path: PathType,
                  tree: Tree,
-                 info: Optional[Info] = None) -> bool:
+                 info: Optional[Info] = None):
         path = Path.wrap(self.schema, path)
         if info is None:
             info = self.info("irmin", "set_tree")
-        x = lib.irmin_set_tree(self._store, path._path, tree._tree, info._info)
-        return x
+        lib.irmin_set_tree(self._store, path._path, tree._tree, info._info)
 
     def mem_tree(self, path: PathType) -> bool:
         path = Path.wrap(self.schema, path)

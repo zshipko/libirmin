@@ -9,7 +9,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
           Root.get schema |> Irmin_unix.Resolver.Store.destruct
         in
         let module Info = Irmin_unix.Info (Store.Info) in
-        Root.create (Info.v ?author "%s" message))
+        let info : Info.t = Info.v ?author "%s" message () in
+        Root.create info)
 
   let () =
     fn "info_update"

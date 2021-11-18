@@ -97,7 +97,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let branch =
           Irmin.Type.of_string Store.branch_t branch |> Result.get_ok
         in
-        let res = Lwt_main.run (Store.merge_with_branch store ~info branch) in
+        let res =
+          Lwt_main.run
+            (Store.merge_with_branch store branch ~info:(fun () -> info))
+        in
         match res with Ok () -> true | Error _ -> false)
 
   let () =
@@ -107,7 +110,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let info = Root.get info in
         let (module Store : Irmin.S), store = Root.get store in
         let commit = Root.get commit in
-        let res = Lwt_main.run (Store.merge_with_commit store ~info commit) in
+        let res =
+          Lwt_main.run
+            (Store.merge_with_commit store commit ~info:(fun () -> info))
+        in
         match res with Ok () -> true | Error _ -> false)
 
   let () =
@@ -118,7 +124,9 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let info = Root.get info in
         let path : Store.path = Root.get path in
         let value : Store.contents = Root.get value in
-        let x = Lwt_main.run (Store.set store path value ~info) in
+        let x =
+          Lwt_main.run (Store.set store path value ~info:(fun () -> info))
+        in
         match x with Ok () -> true | Error _ -> false)
 
   let () =
@@ -134,7 +142,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let set : Store.contents option =
           if set = null then None else Some (Root.get set)
         in
-        let x = Lwt_main.run (Store.test_and_set store path ~test ~set ~info) in
+        let x =
+          Lwt_main.run
+            (Store.test_and_set store path ~test ~set ~info:(fun () -> info))
+        in
         match x with Ok () -> true | Error _ -> false)
 
   let () =
@@ -151,7 +162,9 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
           if set = null then None else Some (Root.get set)
         in
         let x =
-          Lwt_main.run (Store.test_and_set_tree store path ~test ~set ~info)
+          Lwt_main.run
+            (Store.test_and_set_tree store path ~test ~set ~info:(fun () ->
+                 info))
         in
         match x with Ok () -> true | Error _ -> false)
 
@@ -160,10 +173,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (store @-> path @-> tree @-> info @-> returning bool)
       (fun store path tree info ->
         let (module Store : Irmin.S), store = Root.get store in
-        let info = Root.get info in
+        let info : Store.info = Root.get info in
         let path : Store.path = Root.get path in
-        let tree : Store.tree = Root.get tree in
-        let x = Lwt_main.run (Store.set_tree store path tree ~info) in
+        let tree' : Store.tree = Root.get tree in
+        let x =
+          Lwt_main.run (Store.set_tree store path tree' ~info:(fun () -> info))
+        in
         match x with Ok () -> true | Error _ -> false)
 
   let () =
@@ -181,7 +196,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (fun store path ->
         let (module Store : Irmin.S), store = Root.get store in
         let path : Store.path = Root.get path in
-        let x = Lwt_main.run (Store.find_tree store path) in
+        let x : Store.tree option = Lwt_main.run (Store.find_tree store path) in
         match x with Some x -> Root.create x | None -> null)
 
   let () =
@@ -192,7 +207,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let module Info = Irmin_unix.Info (Store.Info) in
         let info = Root.get info in
         let path : Store.path = Root.get path in
-        Lwt_main.run (Store.remove store path ~info) |> Result.get_ok)
+        Lwt_main.run (Store.remove store path ~info:(fun () -> info))
+        |> Result.get_ok)
 
   let () =
     fn "mem"
