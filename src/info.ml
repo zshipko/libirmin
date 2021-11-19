@@ -5,7 +5,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "info_new"
       (repo @-> string @-> string_opt @-> returning info)
       (fun repo message author ->
-        let (module Store : Irmin.S), _ = Root.get repo in
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let module Info = Irmin_unix.Info (Store.Info) in
         let info : Info.t = Info.v ?author "%s" message () in
         Root.create info)
@@ -14,7 +14,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "info_update"
       (repo @-> string @-> string_opt @-> info @-> returning info)
       (fun repo message author info ->
-        let (module Store : Irmin.S), _ = Root.get repo in
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let module Info = Irmin_unix.Info (Store.Info) in
         Root.set info (Info.v ?author "%s" message);
         info)
@@ -24,7 +24,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (repo @-> info @-> returning string)
       (fun repo info ->
         let info = Root.get info in
-        let (module Store : Irmin.S), _ = Root.get repo in
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         Store.Info.message info)
 
   let () =
@@ -32,7 +32,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (repo @-> info @-> returning string)
       (fun repo info ->
         let info = Root.get info in
-        let (module Store : Irmin.S), _ = Root.get repo in
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         Store.Info.author info)
 
   let () =
@@ -40,7 +40,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (repo @-> info @-> returning int64_t)
       (fun repo info ->
         let info = Root.get info in
-        let (module Store : Irmin.S), _ = Root.get repo in
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         Store.Info.date info)
 
   let () = fn "info_free" (info @-> returning void) free

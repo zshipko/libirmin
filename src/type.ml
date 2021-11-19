@@ -59,7 +59,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "type_path"
       (repo @-> returning ty)
       (fun repo ->
-        let (module Store : Irmin.S), _ = Root.get repo in
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         Root.create Store.path_t)
 
   let () =

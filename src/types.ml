@@ -4,11 +4,11 @@ type config = Irmin_unix.Resolver.Store.t * Irmin.config
 
 let config = ptr (typedef void "IrminConfig")
 
-type 'a repo = (module Irmin.S with type repo = 'a) * 'a
+type 'a repo = (module Irmin.Generic_key.S with type repo = 'a) * 'a
 
 let repo = ptr (typedef void "IrminRepo")
 
-type 'a store = (module Irmin.S with type t = 'a) * 'a
+type 'a store = (module Irmin.Generic_key.S with type t = 'a) * 'a
 
 let store = ptr (typedef void "Irmin")
 
