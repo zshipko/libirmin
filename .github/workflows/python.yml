@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build:
+  python:
     strategy:
       fail-fast: true
       matrix:
@@ -32,6 +32,7 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-compiler}}
 
+      - run: sudo apt install python3-dev
       - run: opam install . --deps-only --with-doc --with-test
       - run: pip3 install . --user
       - run: python3 py/test.py
