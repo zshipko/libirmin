@@ -6,7 +6,7 @@
 int main(int argc, char *argv[]) {
   puts("A");
 
-  AUTO IrminConfig *config = irmin_config_pack(NULL, NULL);
+  AUTO IrminConfig *config = irmin_config_git(NULL);
 
   puts("B");
 
@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
 
   char *k1[] = {"a", "b", NULL};
   AUTO IrminPath *path1 = irmin_path(repo, k1);
+  assert(irmin_mem_tree(store, path1));
   AUTO IrminTree *t = irmin_find_tree(store, path1);
 
   puts("TREE1");

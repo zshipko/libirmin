@@ -1,4 +1,5 @@
-libirmin.*
+libirmin.so
+libirmin.dylib
 test/test
 tmp*
 compile_flags.txt

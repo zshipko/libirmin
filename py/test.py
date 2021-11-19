@@ -1,6 +1,6 @@
 from irmin import Config, Store, Commit, Repo
 
-config = Config.pack(contents='string')
+config = Config.git(contents='string')
 config.root("./test3")
 repo = Repo(config)
 store = Store(repo)
