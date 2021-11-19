@@ -1,6 +1,6 @@
 from irmin import Config, Store, Commit, Repo
 
-config = Config(backend='mem', contents='string')
+config = Config.pack(contents='string')
 config.root("./test3")
 repo = Repo(config)
 store = Store(repo)
@@ -24,7 +24,6 @@ assert (store.mem_tree(["test"]))
 t = store.tree(["test"])
 if t is not None:
     t["b"] = "abc"  # {"y": 0}
-    print(t["b"])
     store.set_tree(["test"], t)
 
 assert (["test", "a"] in store)

@@ -33,7 +33,6 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
     writeln h_fd "#include <stdbool.h>";
     writeln h_fd "#include <stdint.h>";
     types h_fd [
-      "IrminSchema";
       "IrminType";
       "IrminValue";
       "IrminConfig";

@@ -27,8 +27,8 @@ class Type:
         return Type(lib.irmin_type_json_value())
 
     @staticmethod
-    def path(schema) -> 'Type':
-        return Type(lib.irmin_type_path(schema._schema))
+    def path(repo) -> 'Type':
+        return Type(lib.irmin_type_path(repo._repo))
 
     def __del__(self):
         lib.irmin_type_free(self._type)
@@ -111,48 +111,17 @@ class Contents:
         self.type = ty
 
 
-class Schema:
-    content_types = {
-        "string": Contents(Value.string, Type.string(), str),
-        "json": Contents(Value.json, Type.json(), dict),
-        "json-value": Contents(Value.json_value, Type.json_value(), Any)
-    }
-
-    def __init__(self, ptr, c: str):
-        self.contents = self.content_types[c]
-        self._schema = ptr
-
-    @staticmethod
-    def git(contents="string"):
-        return Schema(lib.irmin_schema_git(str.encode(contents)), contents)
-
-    @staticmethod
-    def pack(contents="string", hash: Optional[str] = None):
-        h = ffi.NULL if hash is None else str.encode(hash)
-        return Schema(lib.irmin_schema_pack(h, str.encode(contents)), contents)
-
-    @staticmethod
-    def mem(contents="string", hash: Optional[str] = None):
-        h = ffi.NULL if hash is None else str.encode(hash)
-        return Schema(lib.irmin_schema_mem(h, str.encode(contents)), contents)
-
-    @staticmethod
-    def fs(contents="string", hash: Optional[str] = None):
-        h = ffi.NULL if hash is None else str.encode(hash)
-        return Schema(lib.irmin_schema_fs(h, str.encode(contents)), contents)
-
-    def __del__(self):
-        lib.irmin_schema_free(self._schema)
+content_types = {
+    "string": Contents(Value.string, Type.string(), str),
+    "json": Contents(Value.json, Type.json(), dict),
+    "json-value": Contents(Value.json_value, Type.json_value(), Any)
+}
 
 
 class Config:
-    def __init__(self, backend: Union[str, Schema], *args, **kwargs):
-        if isinstance(backend, str):
-            f = getattr(Schema, backend)
-            self.schema = f(*args, **kwargs)
-        else:
-            self.schema = backend
-        self._config = lib.irmin_config_new(self.schema._schema)
+    def __init__(self, ptr, contents="string", *args, **kwargs):
+        self._config = ptr
+        self.contents = content_types[contents]
 
     def root(self, root: str):
         value = Value.string(root)
@@ -166,62 +135,85 @@ class Config:
     def __del__(self):
         lib.irmin_config_free(self._config)
 
+    @staticmethod
+    def git(contents="string"):
+        return Config(lib.irmin_config_git(str.encode(contents)),
+                      contents=contents)
+
+    @staticmethod
+    def git_mem(contents="string"):
+        return Config(lib.irmin_config_git_mem(str.encode(contents)),
+                      contents=contents)
+
+    @staticmethod
+    def pack(contents="string", hash: Optional[str] = None):
+        h = ffi.NULL if hash is None else str.encode(hash)
+        return Config(lib.irmin_config_pack(h, str.encode(contents)),
+                      contents=contents)
+
+    @staticmethod
+    def mem(contents="string", hash: Optional[str] = None):
+        h = ffi.NULL if hash is None else str.encode(hash)
+        return Config(lib.irmin_config_mem(h, str.encode(contents)),
+                      contents=contents)
+
+    @staticmethod
+    def fs(contents="string", hash: Optional[str] = None):
+        h = ffi.NULL if hash is None else str.encode(hash)
+        return Config(lib.irmin_config_fs(h, str.encode(contents)),
+                      contents=contents)
+
 
 class Repo:
     def __init__(self, config: Config):
         self.config = config
-        self._repo = lib.irmin_repo_new(self.schema._schema,
-                                        self.config._config)
-
-    @property
-    def schema(self) -> Schema:
-        return self.config.schema
+        self._repo = lib.irmin_repo_new(self.config._config)
 
     def __del__(self):
         lib.irmin_repo_free(self._repo)
 
 
 class Path:
-    def __init__(self, schema: Schema, ptr):
-        self.schema = schema
+    def __init__(self, repo: Repo, ptr):
+        self.repo = repo
         if isinstance(ptr, (tuple, list)):
             a = [ffi.new("char[]", str.encode(arg)) for arg in ptr]
             a.append(ffi.NULL)
             x = ffi.new("char*[]", a)
-            ptr = lib.irmin_path(self.schema._schema, x)
+            ptr = lib.irmin_path(self.repo._repo, x)
         self._path = ptr
 
     @staticmethod
-    def wrap(schema: Schema, path: PathType) -> 'Path':
+    def wrap(repo: Repo, path: PathType) -> 'Path':
         if isinstance(path, Path):
             return path
         elif isinstance(path, str):
-            return Path(schema, [path])
-        return Path(schema, path)
+            return Path(repo, [path])
+        return Path(repo, path)
 
     @staticmethod
-    def from_string(schema: Schema, s: str) -> Optional['Path']:
-        t = Type.path(schema)
+    def from_string(repo: Repo, s: str) -> Optional['Path']:
+        t = Type.path(repo)
         b = str.encode(s)
         v = lib.irmin_value_of_string(t._type, b, len(b))
         if v == ffi.NULL:
             return None
-        return Path(schema, v)
+        return Path(repo, v)
 
     def __str__(self):
-        return Value(self._path, Type.path(self.schema)).to_string()
+        return Value(self._path, Type.path(self.repo)).to_string()
 
     def __del__(self):
         lib.irmin_path_free(self._path)
 
 
 class Hash:
-    def __init__(self, schema: Schema, h):
-        self.schema = schema
+    def __init__(self, repo: Repo, h):
+        self.repo = repo
         self._hash = h
 
     def __bytes__(self):
-        s = lib.irmin_hash_get_string(self.schema._schema, self._hash)
+        s = lib.irmin_hash_get_string(self.repo._repo, self._hash)
         st = ffi.string(s)
         lib.free(s)
         return st
@@ -234,31 +226,31 @@ class Hash:
 
 
 class Info:
-    def __init__(self, schema: Schema, i):
-        self.schema = schema
+    def __init__(self, repo: Repo, i):
+        self.repo = repo
         self._info = i
 
     @staticmethod
-    def new(schema, author, message):
+    def new(repo, author, message):
         return Info(
-            schema,
-            lib.irmin_info_new(schema._schema, str.encode(author),
+            repo,
+            lib.irmin_info_new(repo._repo, str.encode(author),
                                str.encode(message)))
 
     @property
     def date(self) -> int:
-        return lib.irmin_info_date(self.schema._schema, self._info)
+        return lib.irmin_info_date(self.repo._repo, self._info)
 
     @property
     def author(self) -> str:
-        s = lib.irmin_info_author(self.schema._schema, self._info)
+        s = lib.irmin_info_author(self.repo._repo, self._info)
         st = ffi.string(s)
         ffi.free(s)
         return bytes.decode(st)
 
     @property
     def message(self) -> str:
-        s = lib.irmin_info_message(self.schema._schema, self._info)
+        s = lib.irmin_info_message(self.repo._repo, self._info)
         st = ffi.string(s)
         ffi.free(s)
         return bytes.decode(st)
@@ -268,30 +260,28 @@ class Info:
 
 
 class Commit:
-    def __init__(self, schema: Schema, c):
-        self.schema = schema
+    def __init__(self, repo: Repo, c):
+        self.repo = repo
         self._commit = c
 
     @property
     def hash(self) -> Hash:
-        h = lib.irmin_commit_hash(self.schema._schema, self._commit)
-        return Hash(self.schema, h)
+        h = lib.irmin_commit_hash(self.repo._repo, self._commit)
+        return Hash(self.repo, h)
 
     @staticmethod
     def of_hash(repo: Repo, hash: Hash) -> Optional['Commit']:
-        c = lib.irmin_commit_of_hash(hash.schema._schema, repo._repo,
-                                     hash._hash)
+        c = lib.irmin_commit_of_hash(repo._repo, hash._hash)
         if c == ffi.NULL:
             return None
-        return Commit(repo.schema, c)
+        return Commit(repo, c)
 
     @property
     def parents(self) -> List['Commit']:
-        n = lib.irmin_commit_parents_length(self.schema._schema, self._commit)
+        n = lib.irmin_commit_parents_length(self.repo._repo, self._commit)
         d = [
-            Commit(
-                self.schema,
-                lib.irmin_commit_parent(self.schema._schema, self._commit, i))
+            Commit(self.repo,
+                   lib.irmin_commit_parent(self.repo._repo, self._commit, i))
             for i in range(n)
         ]
         return d
@@ -304,53 +294,51 @@ class Commit:
 
 
 class Tree:
-    def __init__(self, schema: Schema, t=None):
-        self.schema = schema
+    def __init__(self, repo: Repo, t=None):
+        self.repo = repo
         if t is not None:
             self._tree = t
         else:
-            self._tree = lib.irmin_tree_new(self.schema._schema)
+            self._tree = lib.irmin_tree_new(self.repo._repo)
 
     def __setitem__(self, path: PathType, v):
         if isinstance(v, Tree):
             return self.set_tree(path, v)
 
-        path = Path.wrap(self.schema, path)
-        value = self.schema.contents.f(v)
-        lib.irmin_tree_add(self.schema._schema, self._tree, path._path,
+        path = Path.wrap(self.repo, path)
+        value = self.repo.config.contents.f(v)
+        lib.irmin_tree_add(self.repo._repo, self._tree, path._path,
                            value._value)
 
     def __getitem__(self, path: PathType) -> Optional['Value']:
-        path = Path.wrap(self.schema, path)
-        v = lib.irmin_tree_find(self.schema._schema, self._tree, path._path)
+        path = Path.wrap(self.repo, path)
+        v = lib.irmin_tree_find(self.repo._repo, self._tree, path._path)
         if v == ffi.NULL:
             return None
-        return Value(v, self.schema.contents.type)
+        return Value(v, self.repo.config.contents.type)
 
     def __delitem__(self, path: PathType):
-        path = Path.wrap(self.schema, path)
-        ffi.irmin_tree_remove(self.schema._schema, self._tree, path._path)
+        path = Path.wrap(self.repo, path)
+        ffi.irmin_tree_remove(self.repo._repo, self._tree, path._path)
 
     def __contains__(self, path: PathType) -> bool:
-        path = Path.wrap(self.schema, path)
-        return lib.irmin_tree_mem(self.schema._schema, self._tree, path._path)
+        path = Path.wrap(self.repo, path)
+        return lib.irmin_tree_mem(self.repo._repo, self._tree, path._path)
 
     def mem_tree(self, path: PathType) -> bool:
-        path = Path.wrap(self.schema, path)
-        return lib.irmin_tree_mem_tree(self.schema._schema, self._tree,
-                                       path._path)
+        path = Path.wrap(self.repo, path)
+        return lib.irmin_tree_mem_tree(self.repo._repo, self._tree, path._path)
 
     def tree(self, path: PathType):
-        path = Path.wrap(self.schema, path)
-        x = lib.irmin_tree_get_tree(self.schema._schema, self._tree,
-                                    path._path)
+        path = Path.wrap(self.repo, path)
+        x = lib.irmin_tree_find_tree(self.repo._repo, self._tree, path._path)
         if x == ffi.NULL:
             return None
-        return Tree(self.schema, x)
+        return Tree(self.repo, x)
 
     def set_tree(self, path: PathType, tree: 'Tree'):
-        path = Path.wrap(self.schema, path)
-        lib.irmin_tree_set_tree(self.schema._schema, self._tree, path._path,
+        path = Path.wrap(self.repo, path)
+        lib.irmin_tree_set_tree(self.repo._repo, self._tree, path._path,
                                 tree._tree)
 
     def __del__(self):
@@ -360,29 +348,24 @@ class Tree:
 class Store:
     def __init__(self, repo: Repo, branch: str = "main"):
         self.repo = repo
-        self._store = lib.irmin_of_branch(self.schema._schema, self.repo._repo,
-                                          str.encode(branch))
-
-    @property
-    def schema(self) -> Schema:
-        return self.repo.schema
+        self._store = lib.irmin_of_branch(self.repo._repo, str.encode(branch))
 
     def __del__(self):
         lib.irmin_free(self._store)
 
     def __getitem__(self, path: PathType):
-        path = Path.wrap(self.schema, path)
-        x = lib.irmin_get(self._store, path._path)
+        path = Path.wrap(self.repo, path)
+        x = lib.irmin_find(self._store, path._path)
         if x == ffi.NULL:
             return None
-        return Value(x, self.schema.contents.type)
+        return Value(x, self.repo.config.contents.type)
 
     def tree(self, path: PathType):
-        path = Path.wrap(self.schema, path)
-        x = lib.irmin_get_tree(self._store, path._path)
+        path = Path.wrap(self.repo, path)
+        x = lib.irmin_find_tree(self._store, path._path)
         if x == ffi.NULL:
             return None
-        return Tree(self.schema, x)
+        return Tree(self.repo, x)
 
     def __setitem__(self, path: PathType, value):
         if isinstance(value, Tree):
@@ -390,19 +373,19 @@ class Store:
         return self.set(path, value)
 
     def __delitem__(self, path: PathType):
-        path = Path.wrap(self.schema, path)
+        path = Path.wrap(self.repo, path)
         ffi.irmin_remove(self._store, path._path)
 
     def __contains__(self, path: PathType) -> bool:
-        path = Path.wrap(self.schema, path)
+        path = Path.wrap(self.repo, path)
         return lib.irmin_mem(self._store, path._path)
 
     def info(self, author: str = "", message: str = "") -> Info:
-        return Info.new(self.schema, author, message)
+        return Info.new(self.repo, author, message)
 
     def set(self, path: PathType, value, info: Optional[Info] = None):
-        path = Path.wrap(self.schema, path)
-        value = self.schema.contents.f(value)
+        path = Path.wrap(self.repo, path)
+        value = self.repo.config.contents.f(value)
         if info is None:
             info = self.info("irmin", "set")
         lib.irmin_set(self._store, path._path, value._value, info._info)
@@ -411,13 +394,13 @@ class Store:
                  path: PathType,
                  tree: Tree,
                  info: Optional[Info] = None):
-        path = Path.wrap(self.schema, path)
+        path = Path.wrap(self.repo, path)
         if info is None:
             info = self.info("irmin", "set_tree")
         lib.irmin_set_tree(self._store, path._path, tree._tree, info._info)
 
     def mem_tree(self, path: PathType) -> bool:
-        path = Path.wrap(self.schema, path)
+        path = Path.wrap(self.repo, path)
         return lib.irmin_mem_tree(self._store, path._path)
 
     @property
@@ -425,7 +408,7 @@ class Store:
         c = lib.irmin_get_head(self._store)
         if c == ffi.NULL:
             return None
-        return Commit(self.schema, c)
+        return Commit(self.repo, c)
 
     def revert(self, c: Commit):
         lib.irmin_set_head(self._store, c._commit)

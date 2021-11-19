@@ -2,14 +2,48 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
   open Util.Make (I)
 
   let () =
-    fn "config_new"
-      (schema @-> returning config)
-      (fun schema ->
-        let _, spec, _ =
-          Root.get schema |> Irmin_unix.Resolver.Store.destruct
+    fn "config_pack"
+      (string_opt @-> string_opt @-> returning config)
+      (fun hash contents ->
+        let hash = Option.map Irmin_unix.Resolver.Hash.find hash in
+        let c : config =
+          Irmin_unix.Resolver.load_config ~store:"pack" ?hash ?contents ()
         in
-        (*let spec = Irmin.Backend.Conf.spec config in*)
-        Root.create (Irmin.Backend.Conf.empty spec))
+        Root.create c)
+
+  let () =
+    fn "config_git"
+      (string_opt @-> returning config)
+      (fun contents ->
+        let c = Irmin_unix.Resolver.load_config ~store:"git" ?contents () in
+        Root.create c)
+
+  let () =
+    fn "config_git_mem"
+      (string_opt @-> returning config)
+      (fun contents ->
+        let c = Irmin_unix.Resolver.load_config ~store:"git-mem" ?contents () in
+        Root.create c)
+
+  let () =
+    fn "config_fs"
+      (string_opt @-> string_opt @-> returning config)
+      (fun hash contents ->
+        let hash = Option.map Irmin_unix.Resolver.Hash.find hash in
+        let c =
+          Irmin_unix.Resolver.load_config ~store:"irf" ?hash ?contents ()
+        in
+        Root.create c)
+
+  let () =
+    fn "config_mem"
+      (string_opt @-> string_opt @-> returning config)
+      (fun hash contents ->
+        let hash = Option.map Irmin_unix.Resolver.Hash.find hash in
+        let c =
+          Irmin_unix.Resolver.load_config ~store:"mem" ?hash ?contents ()
+        in
+        Root.create c)
 
   let () = fn "config_free" (config @-> returning void) free
 
@@ -17,7 +51,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "config_set"
       (config @-> string @-> ty @-> value @-> returning bool)
       (fun (type a) c key ty value ->
-        let config : config = Root.get c in
+        let (s, config) : config = Root.get c in
         let k = find_config_key config key in
         let ok, config =
           match k with
@@ -30,6 +64,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
                 let value = Root.get value in
                 (true, Irmin.Backend.Conf.add config k value)
         in
-        Root.set c config;
+        Root.set c (s, config);
         ok)
 end

@@ -5,8 +5,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "path"
-      (schema @-> ptr string_opt @-> returning path)
-      (fun schema arr ->
+      (repo @-> ptr string_opt @-> returning path)
+      (fun repo arr ->
         let rec loop i acc =
           if is_null arr then acc
           else
@@ -15,7 +15,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             | Some x -> loop (i + 1) (x :: acc)
         in
         let l = loop 0 [] in
-        let (module Store : Irmin.S), _ = Root.get schema in
+        let (module Store : Irmin.S), _ = Root.get repo in
         let l =
           List.map
             (fun x -> Irmin.Type.of_string Store.step_t x |> Result.get_ok)
@@ -29,33 +29,24 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "hash_get_string"
-      (schema @-> hash @-> returning string)
-      (fun schema hash ->
-        let (module Store : Irmin.S), _, _ =
-          Root.get schema |> Irmin_unix.Resolver.Store.destruct
-        in
+      (repo @-> hash @-> returning string)
+      (fun repo hash ->
+        let (module Store : Irmin.S), _ = Root.get repo in
         let hash = Root.get hash in
         Irmin.Type.to_string Store.hash_t hash)
 
   let () =
     fn "main"
-      (schema @-> repo @-> returning store)
-      (fun schema repo ->
-        let (module Store : Irmin.S), _, _ =
-          Root.get schema |> Irmin_unix.Resolver.Store.destruct
-        in
-        let repo : Store.repo Lwt.t = Root.get repo in
-        Root.create
-          ((module Store : Irmin.S), Lwt_main.run (repo >>= Store.main)))
+      (repo @-> returning store)
+      (fun repo ->
+        let (module Store : Irmin.S), repo = Root.get repo in
+        Root.create ((module Store : Irmin.S), Lwt_main.run (Store.main repo)))
 
   let () =
     fn "of_branch"
-      (schema @-> repo @-> string @-> returning store)
-      (fun schema repo name ->
-        let (module Store : Irmin.S), _, _ =
-          Root.get schema |> Irmin_unix.Resolver.Store.destruct
-        in
-        let repo : Store.repo Lwt.t = Root.get repo in
+      (repo @-> string @-> returning store)
+      (fun repo name ->
+        let (module Store : Irmin.S), repo = Root.get repo in
         match Irmin.Type.of_string Store.Branch.t name with
         | Error _ -> null
         | Ok branch ->
@@ -182,7 +173,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         match x with Ok () -> true | Error _ -> false)
 
   let () =
-    fn "get"
+    fn "find"
       (store @-> path @-> returning value)
       (fun store path ->
         let (module Store : Irmin.S), store = Root.get store in
@@ -191,7 +182,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         match x with Some x -> Root.create x | None -> null)
 
   let () =
-    fn "get_tree"
+    fn "find_tree"
       (store @-> path @-> returning tree)
       (fun store path ->
         let (module Store : Irmin.S), store = Root.get store in

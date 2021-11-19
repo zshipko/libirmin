@@ -57,11 +57,9 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "type_path"
-      (schema @-> returning ty)
-      (fun schema ->
-        let (module Store : Irmin.S), _, _ =
-          Root.get schema |> Irmin_unix.Resolver.Store.destruct
-        in
+      (repo @-> returning ty)
+      (fun repo ->
+        let (module Store : Irmin.S), _ = Root.get repo in
         Root.create Store.path_t)
 
   let () =
