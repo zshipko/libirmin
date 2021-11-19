@@ -21,6 +21,23 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         in
         Store.Path.v l |> Root.create)
 
+  let () =
+    fn "path_of_string"
+      (repo @-> string @-> returning path)
+      (fun repo s ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        match Irmin.Type.of_string Store.Path.t s with
+        | Ok p -> Root.create p
+        | Error _ -> null)
+
+  let () =
+    fn "string_of_path"
+      (repo @-> path @-> returning string)
+      (fun repo p ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let path = Root.get p in
+        Irmin.Type.to_string Store.Path.t path)
+
   let () = fn "path_free" (path @-> returning void) free
 
   let () = fn "hash_free" (hash @-> returning void) free

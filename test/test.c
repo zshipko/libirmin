@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
+  irmin_log_level("debug");
   puts("A");
 
   AUTO IrminConfig *config = irmin_config_git(NULL);
@@ -43,15 +44,13 @@ int main(int argc, char *argv[]) {
 
   puts("TREE");
 
-  char *k1[] = {"a", "b", NULL};
-  AUTO IrminPath *path1 = irmin_path(repo, k1);
+  AUTO IrminPath *path1 = irmin_path_of_string(repo, "a/b");
   assert(irmin_mem_tree(store, path1));
   AUTO IrminTree *t = irmin_find_tree(store, path1);
 
   puts("TREE1");
 
-  char *k2[] = {"d", NULL};
-  AUTO IrminPath *path2 = irmin_path(repo, k2);
+  AUTO IrminPath *path2 = irmin_path_of_string(repo, "d");
 
   AUTO IrminValue *b = irmin_value_string("456");
   irmin_tree_add(repo, t, path2, b);
@@ -60,8 +59,7 @@ int main(int argc, char *argv[]) {
   irmin_set_tree(store, path1, t, info1);
 
   puts("TREE3");
-  char *k3[] = {"a", "b", "d", NULL};
-  AUTO IrminPath *path3 = irmin_path(repo, k3);
+  AUTO IrminPath *path3 = irmin_path_of_string(repo, "a/b/d");
   assert(irmin_mem(store, path3));
 
   return 0;

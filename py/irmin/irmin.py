@@ -118,6 +118,13 @@ content_types = {
 }
 
 
+def log_level(level):
+    if level is None:
+        lib.irmin_log_level(ffi.NULL)
+    else:
+        lib.irmin_log_level(str.encode(level))
+
+
 class Config:
     def __init__(self, ptr, contents="string", *args, **kwargs):
         self._config = ptr
@@ -193,15 +200,15 @@ class Path:
 
     @staticmethod
     def from_string(repo: Repo, s: str) -> Optional['Path']:
-        t = Type.path(repo)
         b = str.encode(s)
-        v = lib.irmin_value_of_string(t._type, b, len(b))
+        v = lib.irmin_path_of_string(b)
         if v == ffi.NULL:
             return None
         return Path(repo, v)
 
     def __str__(self):
-        return Value(self._path, Type.path(self.repo)).to_string()
+        b = lib.irmin_path_to_string(self._path)
+        return bytes.decode(b)
 
     def __del__(self):
         lib.irmin_path_free(self._path)

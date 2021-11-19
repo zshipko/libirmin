@@ -1,5 +1,3 @@
-open Lwt.Infix
-
 module Make (I : Cstubs_inverted.INTERNAL) = struct
   open Util.Make (I)
 
@@ -25,9 +23,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (fun repo hash ->
         let (module Store : Irmin.Generic_key.S), repo = Root.get repo in
         let hash = Root.get hash in
-        let commit =
-          Lwt_main.run (repo >>= fun r -> Store.Commit.of_hash r hash)
-        in
+        let commit = Lwt_main.run (Store.Commit.of_hash repo hash) in
         match commit with Some c -> Root.create c | None -> null)
 
   let () =

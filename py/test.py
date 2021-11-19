@@ -1,6 +1,11 @@
-from irmin import Config, Store, Commit, Repo
+from irmin import Config, Store, Commit, Repo, log_level
 
-config = Config.git(contents='string')
+log_level("debug")
+
+# TODO: track down why irmin-git crashes here:
+# config = Config.git(contents='string')
+
+config = Config.pack(contents='string')
 config.root("./test3")
 repo = Repo(config)
 store = Store(repo)

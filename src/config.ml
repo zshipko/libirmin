@@ -2,6 +2,19 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
   open Util.Make (I)
 
   let () =
+    fn "log_level"
+      (string_opt @-> returning void)
+      (fun level ->
+        match level with
+        | None -> Logs.set_level None
+        | Some level -> (
+            Fmt_tty.setup_std_outputs ();
+            Logs.set_reporter (Logs_fmt.reporter ());
+            match Logs.level_of_string level with
+            | Error _ -> ()
+            | Ok level -> Logs.set_level level))
+
+  let () =
     fn "config_pack"
       (string_opt @-> string_opt @-> returning config)
       (fun hash contents ->
