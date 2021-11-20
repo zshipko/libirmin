@@ -89,14 +89,16 @@ class Value:
         return Value(lib.irmin_value_of_string(t._type, s, len(s)), t)
 
     def get_string(self) -> str:
-        s = lib.irmin_value_get_string(self._value, ffi.NULL)
-        st = ffi.string(s)
+        n = ffi.new("int[1]", [0])
+        s = lib.irmin_value_get_string(self._value, n)
+        st = ffi.string(s, n[0])
         lib.free(s)
         return bytes.decode(st)
 
     def to_bin(self) -> str:
-        s = lib.irmin_value_to_bin(self._value, ffi.NULL)
-        st = ffi.string(s)
+        n = ffi.new("int[1]", [0])
+        s = lib.irmin_value_to_bin(self._value, n)
+        st = ffi.string(s, n[0])
         lib.free(s)
         return st
 
@@ -108,8 +110,9 @@ class Value:
         return Value(v, t)
 
     def to_string(self) -> str:
-        s = lib.irmin_value_to_string(self._value, ffi.NULL)
-        st = ffi.string(s)
+        n = ffi.new("int[1]", [0])
+        s = lib.irmin_value_to_string(self._value, n)
+        st = ffi.string(s, n[0])
         lib.free(s)
         return st
 
@@ -121,8 +124,9 @@ class Value:
         return Value(v, t)
 
     def __bytes__(self):
-        s = lib.irmin_value_to_string(self.type._type, self._value, ffi.NULL)
-        st = ffi.string(s)
+        n = ffi.new("int[1]", [0])
+        s = lib.irmin_value_to_string(self.type._type, self._value, n)
+        st = ffi.string(s, n[0])
         lib.free(s)
         return st
 
@@ -255,8 +259,9 @@ class Hash:
         return lib.irmin_hash_equal(self.repo._repo, self._hash, other._hash)
 
     def __bytes__(self):
-        s = lib.irmin_hash_to_string(self.repo._repo, self._hash, ffi.NULL)
-        st = ffi.string(s)
+        n = ffi.new("int[1]", [0])
+        s = lib.irmin_hash_to_string(self.repo._repo, self._hash, n)
+        st = ffi.string(s, n[0])
         lib.free(s)
         return st
 
