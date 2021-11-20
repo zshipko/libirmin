@@ -77,10 +77,13 @@ class Value:
         return Value(lib.irmin_value_string(str.encode(s)), Type.string())
 
     @staticmethod
-    def json(d: dict) -> 'Value':
+    def json(d: dict) -> Optional['Value']:
         t = Type.json()
         s = str.encode(json.dumps(d))
-        return Value(lib.irmin_value_of_string(t._type, s, len(s)), t)
+        v = lib.irmin_value_of_string(t._type, s, len(s))
+        if v == ffi.NULL:
+            return None
+        return Value(v, t)
 
     @staticmethod
     def json_value(d: Any) -> 'Value':

@@ -2,13 +2,13 @@ from irmin import Config, Store, Commit, Repo, Type, Hash, log_level
 
 log_level("error")
 
-config = Config.git(contents='string')
+config = Config.git(contents='json')
 config.root("./test3")
 repo = Repo(config)
 store = Store(repo)
-store["test", "a"] = "cool"  # {"x": "cool"}
+store["test", "a"] = {"x": "cool"}
 c = store.head
-store["test", "a"] = "ok"  # {"x": "ok"}
+store["test", "a"] = {"x": "ok"}
 d = store.head
 if d is not None:
     print(d.parents)
@@ -27,7 +27,7 @@ assert (Type.string().name == "string")
 
 t = store.tree(["test"])
 if t is not None:
-    t["b"] = "abc"  # {"y": 0}
+    t["b"] = {"y": 0}
     store.set_tree(["test"], t)
 
 assert (["test", "a"] in store)
