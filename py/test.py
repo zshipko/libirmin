@@ -3,7 +3,7 @@ from irmin import Config, Store, Commit, Repo, Type, Hash, log_level
 log_level("error")
 
 config = Config.git(contents='json')
-config.root("./test3")
+config.root("./test4")
 repo = Repo(config)
 store = Store(repo)
 store["test", "a"] = {"x": "cool"}
@@ -33,3 +33,4 @@ if t is not None:
 
 assert (["test", "a"] in store)
 assert (["test", "b"] in store)
+print(store["test", "a"])

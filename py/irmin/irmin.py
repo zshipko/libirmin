@@ -86,6 +86,10 @@ class Value:
         return Value(lib.irmin_value_string(b, len(b)), Type.string())
 
     @staticmethod
+    def bytes(b: bytes) -> 'Value':
+        return Value(lib.irmin_value_string(b, len(b)), Type.string())
+
+    @staticmethod
     def json(d: dict) -> Optional['Value']:
         t = Type.json()
         s = str.encode(json.dumps(d))
@@ -101,13 +105,16 @@ class Value:
         return Value(lib.irmin_value_of_string(t._type, s, len(s)), t)
 
     def get_string(self) -> str:
+        return bytes.decode(self.get_bytes())
+
+    def get_bytes(self):
         n = ffi.new("int[1]", [0])
         s = lib.irmin_value_get_string(self._value, n)
         st = ffi.string(s, n[0])
         lib.free(s)
-        return bytes.decode(st)
+        return st
 
-    def to_bin(self) -> bytes:
+    def to_bin(self):
         n = ffi.new("int[1]", [0])
         s = lib.irmin_value_to_bin(self.type._type, self._value, n)
         st = ffi.string(s, n[0])
@@ -115,13 +122,22 @@ class Value:
         return st
 
     @staticmethod
-    def of_bin(t: Type, b: bytes) -> Optional['Value']:
+    def of_bin(t: Type, b) -> Optional['Value']:
         v = lib.irmin_value_of_bin(t._type, b, len(b))
         if v == ffi.NULL:
             return None
         return Value(v, t)
 
     def to_string(self) -> str:
+        b = self.to_bytes()
+        return bytes.decode(b)
+
+    @staticmethod
+    def of_string(t: Type, s: str) -> Optional['Value']:
+        b = str.encode(s)
+        return Value.of_bytes(t, b)
+
+    def to_bytes(self):
         n = ffi.new("int[1]", [0])
         s = lib.irmin_value_to_string(self.type._type, self._value, n)
         st = ffi.string(s, n[0])
@@ -129,7 +145,7 @@ class Value:
         return st
 
     @staticmethod
-    def of_string(t: Type, b: bytes) -> Optional['Value']:
+    def of_bytes(t: Type, b) -> Optional['Value']:
         v = lib.irmin_value_of_string(t._type, b, len(b))
         if v == ffi.NULL:
             return None
@@ -143,21 +159,17 @@ class Value:
         return bytes.decode(st)
 
     def to_dict(self) -> dict:
-        return json.loads(self.to_json())
+        return json.loads(self.to_string())
 
     @staticmethod
-    def of_json(t: Type, b: bytes) -> Optional['Value']:
+    def of_json(t: Type, b) -> Optional['Value']:
         v = lib.irmin_value_of_json(t._type, b, len(b))
         if v == ffi.NULL:
             return None
         return Value(v, t)
 
     def __bytes__(self):
-        n = ffi.new("int[1]", [0])
-        s = lib.irmin_value_to_string(self.type._type, self._value, n)
-        st = ffi.string(s, n[0])
-        lib.free(s)
-        return st
+        return self.get_bytes()
 
     def __str__(self):
         return bytes.decode(self.__bytes__())
@@ -167,16 +179,26 @@ class Value:
 
 
 class Contents:
-    def __init__(self, f, ty, py_ty):
+    def __init__(self, name, to_value, from_value, ty, py_ty):
+        self.name = name
         self.python_type = py_ty
-        self.f = f
+        self.to_value = to_value
+        self.from_value = from_value
         self.type = ty
 
 
+def id(x):
+    x
+
+
 content_types = {
-    "string": Contents(Value.string, Type.string(), str),
-    "json": Contents(Value.json, Type.json(), dict),
-    "json-value": Contents(Value.json_value, Type.json_value(), Any)
+    "string":
+    Contents("string", Value.string, Value.get_string, Type.string(), str),
+    "json":
+    Contents("json", Value.json, Value.to_dict, Type.json(), dict),
+    "json-value":
+    Contents("json-value", Value.json_value,
+             lambda x: json.loads(Value.to_string(x)), Type.json_value(), Any),
 }
 
 
@@ -207,31 +229,36 @@ class Config:
 
     @staticmethod
     def git(contents="string"):
-        return Config(lib.irmin_config_git(str.encode(contents)),
+        c = content_types[contents]
+        return Config(lib.irmin_config_git(str.encode(c.name)),
                       contents=contents)
 
     @staticmethod
     def git_mem(contents="string"):
+        c = content_types[contents]
         return Config(lib.irmin_config_git_mem(str.encode(contents)),
-                      contents=contents)
+                      contents=c.name)
 
     @staticmethod
     def pack(contents="string", hash: Optional[str] = None):
+        c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
         return Config(lib.irmin_config_pack(h, str.encode(contents)),
-                      contents=contents)
+                      contents=c.name)
 
     @staticmethod
     def mem(contents="string", hash: Optional[str] = None):
+        c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
         return Config(lib.irmin_config_mem(h, str.encode(contents)),
-                      contents=contents)
+                      contents=c.name)
 
     @staticmethod
     def fs(contents="string", hash: Optional[str] = None):
+        c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
         return Config(lib.irmin_config_fs(h, str.encode(contents)),
-                      contents=contents)
+                      contents=c.name)
 
 
 class Repo:
@@ -400,7 +427,7 @@ class Tree:
             return self.set_tree(path, v)
 
         path = Path.wrap(self.repo, path)
-        value = self.repo.config.contents.f(v)
+        value = self.repo.config.contents.to_value(v)
         lib.irmin_tree_add(self.repo._repo, self._tree, path._path,
                            value._value)
 
@@ -409,7 +436,8 @@ class Tree:
         v = lib.irmin_tree_find(self.repo._repo, self._tree, path._path)
         if v == ffi.NULL:
             return None
-        return Value(v, self.repo.config.contents.type)
+        return self.repo.config.contents.from_value(
+            Value(v, self.repo.config.contents.type))
 
     def __delitem__(self, path: PathType):
         path = Path.wrap(self.repo, path)
@@ -460,7 +488,8 @@ class Store:
         x = lib.irmin_find(self._store, path._path)
         if x == ffi.NULL:
             return None
-        return Value(x, self.repo.config.contents.type)
+        return self.repo.config.contents.from_value(
+            Value(x, self.repo.config.contents.type))
 
     def tree(self, path: PathType):
         path = Path.wrap(self.repo, path)
@@ -487,7 +516,7 @@ class Store:
 
     def set(self, path: PathType, value, info: Optional[Info] = None):
         path = Path.wrap(self.repo, path)
-        value = self.repo.config.contents.f(value)
+        value = self.repo.config.contents.to_value(value)
         if info is None:
             info = self.info("irmin", "set")
         lib.irmin_set(self._store, path._path, value._value, info._info)
