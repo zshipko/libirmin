@@ -48,7 +48,7 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
     Cstubs_inverted.write_c_header
       (Format.formatter_of_out_channel h_fd) ~prefix stubs;
     writeln h_fd {|
-static void _irmin_cleanup(void *p) { if (p) { irmin_free(*(void**)p); p = (void*)0;} };
+static void _irmin_cleanup(void *p) { if (p) { irmin_free(*(Irmin**)p); p = (void*)0;} };
 #define AUTO __attribute__((cleanup(_irmin_cleanup)))
     |};
 

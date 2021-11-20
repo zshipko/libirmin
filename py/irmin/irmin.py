@@ -8,6 +8,7 @@ PathType = Union['Path', str, Sequence[str]]
 
 class Type:
     def __init__(self, ptr):
+        assert (ptr != ffi.NULL)
         self._type = ptr
 
     @staticmethod
@@ -61,6 +62,7 @@ class Type:
 
 class Value:
     def __init__(self, ptr, ty: Type):
+        assert (ptr != ffi.NULL)
         self.type = ty
         self._value = ptr
 
@@ -162,7 +164,8 @@ def log_level(level):
 
 
 class Config:
-    def __init__(self, ptr, contents="string", *args, **kwargs):
+    def __init__(self, ptr, contents):
+        assert (ptr != ffi.NULL)
         self._config = ptr
         self.contents = content_types[contents]
 
@@ -218,6 +221,7 @@ class Repo:
 
 class Path:
     def __init__(self, repo: Repo, ptr):
+        assert (ptr != ffi.NULL)
         self.repo = repo
         if isinstance(ptr, (tuple, list)):
             a = [ffi.new("char[]", str.encode(arg)) for arg in ptr]
@@ -255,6 +259,7 @@ class Path:
 
 class Hash:
     def __init__(self, repo: Repo, h):
+        assert (h != ffi.NULL)
         self.repo = repo
         self._hash = h
 
@@ -283,6 +288,7 @@ class Hash:
 
 class Info:
     def __init__(self, repo: Repo, i):
+        assert (i != ffi.NULL)
         self.repo = repo
         self._info = i
 
@@ -317,6 +323,7 @@ class Info:
 
 class Commit:
     def __init__(self, repo: Repo, c):
+        assert (c != ffi.NULL)
         self.repo = repo
         self._commit = c
 
