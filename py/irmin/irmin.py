@@ -85,7 +85,7 @@ class Value:
         return st
 
     @staticmethod
-    def from_string(t: Type, b: bytes) -> Optional['Value']:
+    def of_string(t: Type, b: bytes) -> Optional['Value']:
         v = lib.irmin_value_of_string(t._type, b, len(b))
         if v == ffi.NULL:
             return None
@@ -199,9 +199,9 @@ class Path:
         return Path(repo, path)
 
     @staticmethod
-    def from_string(repo: Repo, s: str) -> Optional['Path']:
+    def of_string(repo: Repo, s: str) -> Optional['Path']:
         b = str.encode(s)
-        v = lib.irmin_path_of_string(b)
+        v = lib.irmin_path_of_string(repo, b, len(b))
         if v == ffi.NULL:
             return None
         return Path(repo, v)
@@ -220,7 +220,7 @@ class Hash:
         self._hash = h
 
     def __bytes__(self):
-        s = lib.irmin_hash_get_string(self.repo._repo, self._hash)
+        s = lib.irmin_hash_to_string(self.repo._repo, self._hash, ffi.NULL)
         st = ffi.string(s)
         lib.free(s)
         return st
@@ -252,14 +252,14 @@ class Info:
     def author(self) -> str:
         s = lib.irmin_info_author(self.repo._repo, self._info)
         st = ffi.string(s)
-        ffi.free(s)
+        # ffi.free(s)
         return bytes.decode(st)
 
     @property
     def message(self) -> str:
         s = lib.irmin_info_message(self.repo._repo, self._info)
         st = ffi.string(s)
-        ffi.free(s)
+        # ffi.free(s)
         return bytes.decode(st)
 
     def __del__(self):

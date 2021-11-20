@@ -1,11 +1,9 @@
 from irmin import Config, Store, Commit, Repo, log_level
+import gc
 
-log_level("debug")
+log_level("error")
 
-# TODO: track down why irmin-git crashes here:
-# config = Config.git(contents='string')
-
-config = Config.pack(contents='string')
+config = Config.git(contents='string')
 config.root("./test3")
 repo = Repo(config)
 store = Store(repo)
@@ -26,10 +24,12 @@ if head is not None:
 
 assert (store.mem_tree(["test"]))
 
+gc.disable()
 t = store.tree(["test"])
 if t is not None:
     t["b"] = "abc"  # {"y": 0}
     store.set_tree(["test"], t)
+gc.enable()
 
 assert (["test", "a"] in store)
 assert (["test", "b"] in store)

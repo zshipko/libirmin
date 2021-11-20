@@ -23,32 +23,48 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "path_of_string"
-      (repo @-> string @-> returning path)
-      (fun repo s ->
+      (repo @-> ptr char @-> int @-> returning path)
+      (fun repo s length ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let length = if length < 0 then strlen s else length in
+        let s = string_from_ptr s ~length in
         match Irmin.Type.of_string Store.Path.t s with
         | Ok p -> Root.create p
         | Error _ -> null)
 
   let () =
-    fn "string_of_path"
-      (repo @-> path @-> returning string)
-      (fun repo p ->
+    fn "path_to_string"
+      (repo @-> path @-> ptr int @-> returning (ptr char))
+      (fun repo p l ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let path = Root.get p in
-        Irmin.Type.to_string Store.Path.t path)
+        let s = Irmin.Type.to_string Store.Path.t path in
+        if not (is_null l) then l <-@ String.length s;
+        malloc_string s)
 
   let () = fn "path_free" (path @-> returning void) free
 
   let () = fn "hash_free" (hash @-> returning void) free
 
   let () =
-    fn "hash_get_string"
-      (repo @-> hash @-> returning string)
-      (fun repo hash ->
+    fn "hash_to_string"
+      (repo @-> hash @-> ptr int @-> returning (ptr char))
+      (fun repo hash l ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let hash = Root.get hash in
-        Irmin.Type.to_string Store.hash_t hash)
+        let s = Irmin.Type.to_string Store.hash_t hash in
+        if not (is_null l) then l <-@ String.length s;
+        malloc_string s)
+
+  let () =
+    fn "hash_of_string"
+      (repo @-> hash @-> ptr int @-> returning (ptr char))
+      (fun repo hash l ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let hash = Root.get hash in
+        let s = Irmin.Type.to_string Store.Hash.t hash in
+        if not (is_null l) then l <-@ String.length s;
+        malloc_string s)
 
   let () =
     fn "main"

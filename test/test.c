@@ -44,13 +44,13 @@ int main(int argc, char *argv[]) {
 
   puts("TREE");
 
-  AUTO IrminPath *path1 = irmin_path_of_string(repo, "a/b");
+  AUTO IrminPath *path1 = irmin_path_of_string(repo, "a/b", -1);
   assert(irmin_mem_tree(store, path1));
   AUTO IrminTree *t = irmin_find_tree(store, path1);
 
   puts("TREE1");
 
-  AUTO IrminPath *path2 = irmin_path_of_string(repo, "d");
+  AUTO IrminPath *path2 = irmin_path_of_string(repo, "d", 1);
 
   AUTO IrminValue *b = irmin_value_string("456");
   irmin_tree_add(repo, t, path2, b);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   irmin_set_tree(store, path1, t, info1);
 
   puts("TREE3");
-  AUTO IrminPath *path3 = irmin_path_of_string(repo, "a/b/d");
+  AUTO IrminPath *path3 = irmin_path_of_string(repo, "a/b/d", -1);
   assert(irmin_mem(store, path3));
 
   return 0;
