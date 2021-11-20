@@ -39,6 +39,9 @@ class Value:
         self.type = ty
         self._value = ptr
 
+    def __eq__(self, other: 'Value'):
+        return str(self).__eq__(str(other))
+
     @staticmethod
     def unit() -> 'Value':
         return Value(lib.irmin_value_unit(), Type.unit())
@@ -190,6 +193,9 @@ class Path:
             ptr = lib.irmin_path(self.repo._repo, x)
         self._path = ptr
 
+    def __eq__(self, other: 'Path'):
+        return str(self).__eq__(str(other))
+
     @staticmethod
     def wrap(repo: Repo, path: PathType) -> 'Path':
         if isinstance(path, Path):
@@ -201,13 +207,13 @@ class Path:
     @staticmethod
     def of_string(repo: Repo, s: str) -> Optional['Path']:
         b = str.encode(s)
-        v = lib.irmin_path_of_string(repo, b, len(b))
+        v = lib.irmin_path_of_string(repo._repo, b, len(b))
         if v == ffi.NULL:
             return None
         return Path(repo, v)
 
     def __str__(self):
-        b = lib.irmin_path_to_string(self._path)
+        b = lib.irmin_path_to_string(self.repo._repo, self._path)
         return bytes.decode(b)
 
     def __del__(self):
@@ -219,11 +225,20 @@ class Hash:
         self.repo = repo
         self._hash = h
 
+    def __eq__(self, other: 'Hash'):
+        return str(self).__eq__(str(other))
+
     def __bytes__(self):
         s = lib.irmin_hash_to_string(self.repo._repo, self._hash, ffi.NULL)
         st = ffi.string(s)
         lib.free(s)
         return st
+
+    @staticmethod
+    def of_string(repo, s):
+        b = str.encode(s)
+        h = lib.irmin_hash_of_string(repo._repo, b, len(b))
+        return Hash(repo, h)
 
     def __str__(self):
         return bytes.decode(self.__bytes__())
@@ -252,14 +267,14 @@ class Info:
     def author(self) -> str:
         s = lib.irmin_info_author(self.repo._repo, self._info)
         st = ffi.string(s)
-        # ffi.free(s)
+        lib.free(s)
         return bytes.decode(st)
 
     @property
     def message(self) -> str:
         s = lib.irmin_info_message(self.repo._repo, self._info)
         st = ffi.string(s)
-        # ffi.free(s)
+        lib.free(s)
         return bytes.decode(st)
 
     def __del__(self):
@@ -275,6 +290,9 @@ class Commit:
     def hash(self) -> Hash:
         h = lib.irmin_commit_hash(self.repo._repo, self._commit)
         return Hash(self.repo, h)
+
+    def __eq__(self, other: 'Commit'):
+        return str(self.hash).__eq__(str(other.hash))
 
     @staticmethod
     def of_hash(repo: Repo, hash: Hash) -> Optional['Commit']:

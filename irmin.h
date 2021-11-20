@@ -76,7 +76,7 @@ char* irmin_path_to_string(IrminRepo* x1010, IrminPath* x1009, int* x1008);
 void irmin_path_free(IrminPath* x1011);
 void irmin_hash_free(IrminHash* x1012);
 char* irmin_hash_to_string(IrminRepo* x1015, IrminHash* x1014, int* x1013);
-char* irmin_hash_of_string(IrminRepo* x1018, IrminHash* x1017, int* x1016);
+IrminHash* irmin_hash_of_string(IrminRepo* x1018, char* x1017, int x1016);
 Irmin* irmin_main(IrminRepo* x1019);
 Irmin* irmin_of_branch(IrminRepo* x1021, char* x1020);
 IrminCommit* irmin_get_head(Irmin* x1022);

@@ -58,13 +58,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "hash_of_string"
-      (repo @-> hash @-> ptr int @-> returning (ptr char))
-      (fun repo hash l ->
+      (repo @-> ptr char @-> int @-> returning hash)
+      (fun repo s length ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
-        let hash = Root.get hash in
-        let s = Irmin.Type.to_string Store.Hash.t hash in
-        if not (is_null l) then l <-@ String.length s;
-        malloc_string s)
+        let s = string_from_ptr s ~length in
+        let hash = Irmin.Type.of_string Store.Hash.t s in
+        match hash with Ok p -> Root.create p | Error _ -> null)
 
   let () =
     fn "main"

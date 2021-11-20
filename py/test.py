@@ -1,5 +1,4 @@
-from irmin import Config, Store, Commit, Repo, log_level
-import gc
+from irmin import Config, Store, Commit, Repo, log_level, Hash
 
 log_level("error")
 
@@ -20,16 +19,15 @@ print(store["test", "a"])
 head = store.head
 if head is not None:
     print(head.hash)
+    assert (Hash.of_string(repo, str(head.hash)) == head.hash)
     print(Commit.of_hash(repo, head.hash))
 
 assert (store.mem_tree(["test"]))
 
-gc.disable()
 t = store.tree(["test"])
 if t is not None:
     t["b"] = "abc"  # {"y": 0}
     store.set_tree(["test"], t)
-gc.enable()
 
 assert (["test", "a"] in store)
 assert (["test", "b"] in store)
