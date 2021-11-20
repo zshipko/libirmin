@@ -28,6 +28,7 @@ assert (Type.string().name == "string")
 t = store.tree(["test"])
 if t is not None:
     t["b"] = {"y": 0}
+    print(t.to_json())
     store.set_tree(["test"], t)
 
 assert (["test", "a"] in store)

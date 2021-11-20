@@ -71,6 +71,12 @@ class Value:
                                      other._value)
 
     @staticmethod
+    def make(ty: Type, x):
+        x = ffi.cast("void*", x)
+        x = lib.irmin_value_make(x)
+        return Value(x, ty)
+
+    @staticmethod
     def unit() -> 'Value':
         return Value(lib.irmin_value_unit(), Type.unit())
 
@@ -128,6 +134,13 @@ class Value:
         if v == ffi.NULL:
             return None
         return Value(v, t)
+
+    def to_json(self) -> str:
+        n = ffi.new("int[1]", [0])
+        s = lib.irmin_value_to_json(self.type._type, self._value, n)
+        st = ffi.string(s, n[0])
+        lib.free(s)
+        return bytes.decode(st)
 
     @staticmethod
     def of_json(t: Type, b: bytes) -> Optional['Value']:
@@ -418,6 +431,11 @@ class Tree:
         path = Path.wrap(self.repo, path)
         lib.irmin_tree_set_tree(self.repo._repo, self._tree, path._path,
                                 tree._tree)
+
+    def to_json(self):
+        t = Type.tree(self.repo)
+        v = Value.make(t, self._tree)
+        return v.to_json()
 
     def __del__(self):
         lib.irmin_tree_free(self._tree)
