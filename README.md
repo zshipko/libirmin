@@ -4,6 +4,11 @@
 
 See [irmin.h](https://github.com/zshipko/libirmin/blob/main/irmin.h) for available functions and types.
 
+## C bindings
+
+NOTE: All strings returned from `libirmin` should be released using `free`, but `Irmin*` types should be released using the
+corresponding `irmin_*_free` function.
+
 ## Python bindings
 
 Python bindings can be installed using:
