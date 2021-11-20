@@ -8,10 +8,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
   let () = fn "value_bool" (bool @-> returning value) (fun b -> Root.create b)
 
   let () =
-    fn "value_string" (string @-> returning value) (fun s -> Root.create s)
-
-  let () =
-    fn "value_string_len"
+    fn "value_string"
       (ptr char @-> int @-> returning value)
       (fun s length ->
         let length = if length < 0 then strlen s else length in
@@ -32,11 +29,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "value_bytes"
-      (string @-> returning value)
-      (fun s -> Root.create (Bytes.of_string s))
-
-  let () =
-    fn "value_bytes_len"
       (ptr char @-> int @-> returning value)
       (fun s length ->
         let length = if length < 0 then strlen s else length in
@@ -138,9 +130,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "value_to_bin"
-      (value @-> ptr int @-> returning (ptr char))
-      (fun value len ->
-        let t, v = Root.get value in
+      (ty @-> value @-> ptr int @-> returning (ptr char))
+      (fun ty value len ->
+        let t = Root.get ty in
+        let v = Root.get value in
         let s = Irmin.Type.(unstage (to_bin_string t)) v in
         if not (is_null len) then len <-@ String.length s;
         malloc_string s)
@@ -158,9 +151,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "value_to_json"
-      (value @-> ptr int @-> returning (ptr char))
-      (fun value len ->
-        let t, v = Root.get value in
+      (ty @-> value @-> ptr int @-> returning (ptr char))
+      (fun ty value len ->
+        let t = Root.get ty in
+        let v = Root.get value in
         let s = Irmin.Type.(to_json_string t) v in
         if not (is_null len) then len <-@ String.length s;
         malloc_string s)

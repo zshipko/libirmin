@@ -76,7 +76,8 @@ class Value:
 
     @staticmethod
     def string(s: str) -> 'Value':
-        return Value(lib.irmin_value_string(str.encode(s)), Type.string())
+        b = str.encode(s)
+        return Value(lib.irmin_value_string(b, len(b)), Type.string())
 
     @staticmethod
     def json(d: dict) -> Optional['Value']:
@@ -102,7 +103,7 @@ class Value:
 
     def to_bin(self) -> bytes:
         n = ffi.new("int[1]", [0])
-        s = lib.irmin_value_to_bin(self._value, n)
+        s = lib.irmin_value_to_bin(self.type._type, self._value, n)
         st = ffi.string(s, n[0])
         lib.free(s)
         return st
@@ -116,7 +117,7 @@ class Value:
 
     def to_string(self) -> str:
         n = ffi.new("int[1]", [0])
-        s = lib.irmin_value_to_string(self._value, n)
+        s = lib.irmin_value_to_string(self.type._type, self._value, n)
         st = ffi.string(s, n[0])
         lib.free(s)
         return st
@@ -124,6 +125,13 @@ class Value:
     @staticmethod
     def of_string(t: Type, b: bytes) -> Optional['Value']:
         v = lib.irmin_value_of_string(t._type, b, len(b))
+        if v == ffi.NULL:
+            return None
+        return Value(v, t)
+
+    @staticmethod
+    def of_json(t: Type, b: bytes) -> Optional['Value']:
+        v = lib.irmin_value_of_json(t._type, b, len(b))
         if v == ffi.NULL:
             return None
         return Value(v, t)

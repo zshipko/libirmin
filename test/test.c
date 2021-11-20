@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
   puts("B");
 
   AUTO IrminType *ty = irmin_type_string();
-  AUTO IrminValue *root = irmin_value_string("./tmp2");
+  AUTO IrminValue *root = irmin_value_string("./tmp2", -1);
 
   assert(irmin_config_set(config, "root", ty, root));
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   AUTO Irmin *store = irmin_main(repo);
 
   char *x = "123";
-  AUTO IrminValue *a = irmin_value_string(x);
+  AUTO IrminValue *a = irmin_value_string(x, -1);
 
   char *k[] = {"a", "b", "c", NULL};
   AUTO IrminPath *path = irmin_path(repo, k);
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
   AUTO IrminPath *path2 = irmin_path_of_string(repo, "d", 1);
 
-  AUTO IrminValue *b = irmin_value_string("456");
+  AUTO IrminValue *b = irmin_value_string("456", -1);
   irmin_tree_add(repo, t, path2, b);
 
   AUTO IrminInfo *info1 = irmin_info_new(repo, "tree", NULL);
