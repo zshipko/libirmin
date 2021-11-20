@@ -1,4 +1,4 @@
-from irmin import Config, Store, Commit, Repo, log_level, Hash
+from irmin import Config, Store, Commit, Repo, Type, Hash, log_level
 
 log_level("error")
 
@@ -23,6 +23,7 @@ if head is not None:
     print(Commit.of_hash(repo, head.hash))
 
 assert (store.mem_tree(["test"]))
+assert (Type.string().name == "string")
 
 t = store.tree(["test"])
 if t is not None:

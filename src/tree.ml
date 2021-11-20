@@ -88,5 +88,14 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let t = Lwt_main.run (Store.Tree.remove tree' path) in
         Root.set tree t)
 
+  let () =
+    fn "tree_equal"
+      (repo @-> tree @-> tree @-> returning bool)
+      (fun repo a b ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let a = Root.get a in
+        let b = Root.get b in
+        Irmin.Type.(unstage (equal Store.tree_t)) a b)
+
   let () = fn "tree_free" (tree @-> returning void) free
 end

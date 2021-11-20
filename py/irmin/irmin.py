@@ -30,6 +30,31 @@ class Type:
     def path(repo) -> 'Type':
         return Type(lib.irmin_type_path(repo._repo))
 
+    @staticmethod
+    def hash(repo) -> 'Type':
+        return Type(lib.irmin_type_hash(repo._repo))
+
+    @staticmethod
+    def tree(repo) -> 'Type':
+        return Type(lib.irmin_type_tree(repo._repo))
+
+    @staticmethod
+    def commit(repo) -> 'Type':
+        return Type(lib.irmin_type_commit(repo._repo))
+
+    @property
+    def name(self) -> str:
+        s = lib.irmin_type_name(self._type, ffi.NULL)
+        st = ffi.string(s)
+        lib.free(s)
+        return bytes.decode(st)
+
+    def __str__(self):
+        return self.name()
+
+    def __eq__(self, other: 'Type') -> bool:  # type: ignore
+        return self.name == other.name
+
     def __del__(self):
         lib.irmin_type_free(self._type)
 
@@ -39,8 +64,9 @@ class Value:
         self.type = ty
         self._value = ptr
 
-    def __eq__(self, other: 'Value'):
-        return str(self).__eq__(str(other))
+    def __eq__(self, other: 'Value') -> bool:  # type: ignore
+        return lib.irmin_value_equal(self.type._type, self._value,
+                                     other._value)
 
     @staticmethod
     def unit() -> 'Value':
@@ -193,8 +219,8 @@ class Path:
             ptr = lib.irmin_path(self.repo._repo, x)
         self._path = ptr
 
-    def __eq__(self, other: 'Path'):
-        return str(self).__eq__(str(other))
+    def __eq__(self, other: 'Path') -> bool:  # type: ignore
+        return lib.irmin_path_equal(self.repo._repo, self._path, other._path)
 
     @staticmethod
     def wrap(repo: Repo, path: PathType) -> 'Path':
@@ -225,8 +251,8 @@ class Hash:
         self.repo = repo
         self._hash = h
 
-    def __eq__(self, other: 'Hash'):
-        return str(self).__eq__(str(other))
+    def __eq__(self, other: 'Hash') -> bool:  # type: ignore
+        return lib.irmin_hash_equal(self.repo._repo, self._hash, other._hash)
 
     def __bytes__(self):
         s = lib.irmin_hash_to_string(self.repo._repo, self._hash, ffi.NULL)
@@ -291,8 +317,9 @@ class Commit:
         h = lib.irmin_commit_hash(self.repo._repo, self._commit)
         return Hash(self.repo, h)
 
-    def __eq__(self, other: 'Commit'):
-        return str(self.hash).__eq__(str(other.hash))
+    def __eq__(self, other: 'Commit') -> bool:  # type: ignore
+        return lib.irmin_commit_equal(self.repo._repo, self._commit,
+                                      other._commit)
 
     @staticmethod
     def of_hash(repo: Repo, hash: Hash) -> Optional['Commit']:
@@ -325,6 +352,9 @@ class Tree:
             self._tree = t
         else:
             self._tree = lib.irmin_tree_new(self.repo._repo)
+
+    def __eq__(self, other: 'Tree') -> bool:  # type: ignore
+        return lib.irmin_tree_equal(self.repo._repo, self._tree, other._tree)
 
     def __setitem__(self, path: PathType, v):
         if isinstance(v, Tree):

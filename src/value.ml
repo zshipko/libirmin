@@ -176,5 +176,23 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         | Ok x -> Root.create x
         | Error _ -> null)
 
+  let () =
+    fn "value_equal"
+      (ty @-> value @-> value @-> returning bool)
+      (fun ty a b ->
+        let ty = Root.get ty in
+        let a = Root.get a in
+        let b = Root.get b in
+        Irmin.Type.(unstage (equal ty)) a b)
+
+  let () =
+    fn "value_compare"
+      (ty @-> value @-> value @-> returning int)
+      (fun ty a b ->
+        let ty = Root.get ty in
+        let a = Root.get a in
+        let b = Root.get b in
+        Irmin.Type.(unstage (compare ty)) a b)
+
   let () = fn "value_free" (value @-> returning void) free
 end

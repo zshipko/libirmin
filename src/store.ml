@@ -42,9 +42,27 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         if not (is_null l) then l <-@ String.length s;
         malloc_string s)
 
+  let () =
+    fn "path_equal"
+      (repo @-> path @-> path @-> returning bool)
+      (fun repo a b ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let a = Root.get a in
+        let b = Root.get b in
+        Irmin.Type.(unstage (equal Store.path_t)) a b)
+
   let () = fn "path_free" (path @-> returning void) free
 
   let () = fn "hash_free" (hash @-> returning void) free
+
+  let () =
+    fn "hash_equal"
+      (repo @-> hash @-> hash @-> returning bool)
+      (fun repo a b ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let a = Root.get a in
+        let b = Root.get b in
+        Irmin.Type.(unstage (equal Store.hash_t)) a b)
 
   let () =
     fn "hash_to_string"

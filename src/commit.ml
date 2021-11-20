@@ -44,5 +44,14 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let parents = Store.Commit.parents commit in
         try List.nth parents i |> Root.create with _ -> null)
 
+  let () =
+    fn "commit_equal"
+      (repo @-> commit @-> commit @-> returning bool)
+      (fun repo a b ->
+        let (module Store : Irmin.Generic_key.S), repo = Root.get repo in
+        let a = Root.get a in
+        let b = Root.get b in
+        Irmin.Type.(unstage (equal (Store.commit_t repo))) a b)
+
   let () = fn "commit_free" (commit @-> returning void) free
 end
