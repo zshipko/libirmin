@@ -142,6 +142,9 @@ class Value:
         lib.free(s)
         return bytes.decode(st)
 
+    def to_dict(self) -> dict:
+        return json.loads(self.to_json())
+
     @staticmethod
     def of_json(t: Type, b: bytes) -> Optional['Value']:
         v = lib.irmin_value_of_json(t._type, b, len(b))
@@ -436,6 +439,9 @@ class Tree:
         t = Type.tree(self.repo)
         v = Value.make(t, self._tree)
         return v.to_json()
+
+    def to_dict(self) -> dict:
+        return json.loads(self.to_json())
 
     def __del__(self):
         lib.irmin_tree_free(self._tree)
