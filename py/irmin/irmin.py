@@ -3,7 +3,7 @@ from .irmin_ffi import ffi, lib  # type: ignore
 from typing import Optional, Sequence, Any, List, Union
 import json
 
-PathType = Union['Path', Sequence[str]]
+PathType = Union['Path', str, Sequence[str]]
 
 
 class Type:
@@ -95,7 +95,7 @@ class Value:
         lib.free(s)
         return bytes.decode(st)
 
-    def to_bin(self) -> str:
+    def to_bin(self) -> bytes:
         n = ffi.new("int[1]", [0])
         s = lib.irmin_value_to_bin(self._value, n)
         st = ffi.string(s, n[0])
@@ -103,7 +103,7 @@ class Value:
         return st
 
     @staticmethod
-    def from_bin(t: Type, b: bytes) -> Optional['Value']:
+    def of_bin(t: Type, b: bytes) -> Optional['Value']:
         v = lib.irmin_value_of_bin(t._type, b, len(b))
         if v == ffi.NULL:
             return None
@@ -478,13 +478,18 @@ class Store:
             info = self.info("irmin", "fast forward")
         return lib.irmin_fast_forward(self._store, c._commit, info._info)
 
-    def merge_with_branch(self, branch: str, info: Optional[Info] = None):
+    def merge_with_branch(self,
+                          branch: str,
+                          info: Optional[Info] = None) -> bool:
         if info is None:
             info = self.info("irmin", "merge")
-        lib.irmin_merge_with_branch(self._store, str.encode(branch),
-                                    info._info)
+        return lib.irmin_merge_with_branch(self._store, str.encode(branch),
+                                           info._info)
 
-    def merge_with_commit(self, commit: Commit, info: Optional[Info] = None):
+    def merge_with_commit(self,
+                          commit: Commit,
+                          info: Optional[Info] = None) -> bool:
         if info is None:
             info = self.info("irmin", "merge commit")
-        lib.irmin_merge_with_branch(self._store, commit._commit, info._info)
+        return lib.irmin_merge_with_branch(self._store, commit._commit,
+                                           info._info)
