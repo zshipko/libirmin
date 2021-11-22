@@ -17,11 +17,17 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     coerce (ptr void) (ptr t)
     @@ Foreign.foreign "malloc" (size_t @-> returning (ptr void)) n
 
+  let memcpy_ocaml_string t dest src n =
+    coerce (ptr void) (ptr t)
+    @@ Foreign.foreign "memcpy"
+         (ptr t @-> ocaml_string @-> size_t @-> returning (ptr void))
+         dest src n
+
   let malloc_string s =
-    let m = malloc char (Unsigned.Size_t.of_int @@ (String.length s + 1)) in
-    for i = 0 to String.length s - 1 do
-      m +@ i <-@ s.[i]
-    done;
+    let len = String.length s in
+    let m : char ptr = malloc char (Unsigned.Size_t.of_int (len + 1)) in
+    let st = Ctypes.ocaml_string_start s in
+    let _ = memcpy_ocaml_string char m st (Unsigned.Size_t.of_int len) in
     m +@ String.length s <-@ char_of_int 0;
     m
 
