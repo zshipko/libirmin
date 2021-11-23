@@ -36,6 +36,6 @@ jobs:
       - run: "opam install . --deps-only --with-doc --with-test || :"
       - run: opam install irmin-tezos irmin-unix
       - run: pip3 install cffi --user
-      - run: pip3 install . --user
+      - run: opam exec -- pip3 install . --user
       - run: python3 py/test.py
 
