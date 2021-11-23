@@ -1,0 +1,18 @@
+[package]
+name = "irmin"
+version = "0.1.0"
+authors = ["zach <zachshipko@gmail.com>"]
+edition = "2018"
+include = ["libirmin.so", "src"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+bindgen = "0.59"
+
+[dependencies]
+serde_json = "1"
+serde = {version = "1", features = ["derive"]}
+
+[profile.dev]
+rpath = true

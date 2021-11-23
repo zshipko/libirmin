@@ -43,6 +43,26 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         malloc_string s)
 
   let () =
+    fn "path_parent"
+      (repo @-> path @-> returning path)
+      (fun repo p ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let path = Root.get p in
+        let path = Store.Path.rdecons path |> Option.map fst in
+        match path with Some p -> Root.create p | None -> null)
+
+  let () =
+    fn "path_append"
+      (repo @-> path @-> ptr char @-> int @-> returning path)
+      (fun repo p s length ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let path = Root.get p in
+        let length = if length < 0 then strlen s else length in
+        let s = string_from_ptr s ~length in
+        let s = Irmin.Type.of_string Store.step_t s |> Result.get_ok in
+        Root.create (Store.Path.rcons path s))
+
+  let () =
     fn "path_equal"
       (repo @-> path @-> path @-> returning bool)
       (fun repo a b ->
