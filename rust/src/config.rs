@@ -31,6 +31,14 @@ where
 
     fn to_value(&self) -> Result<Value, Error>;
     fn from_value(v: &Value) -> Result<Self, Error>;
+
+    fn ty() -> Result<Type, Error> {
+        match Self::content_type() {
+            ContentType::String => Type::string(),
+            ContentType::Json => Type::json(),
+            ContentType::JsonValue => Type::json_value(),
+        }
+    }
 }
 
 impl ContentType {
@@ -60,6 +68,68 @@ impl HashType {
             Some(HashType::Blake2b) => HASH_BLAKE2B.as_ptr(),
             None => std::ptr::null(),
         }
+    }
+}
+
+impl Contents for IrminString {
+    fn content_type() -> ContentType {
+        ContentType::String
+    }
+
+    fn to_value(&self) -> Result<Value, Error> {
+        Value::string(self)
+    }
+
+    fn from_value(v: &Value) -> Result<Self, Error> {
+        v.get_string()
+    }
+}
+
+impl Contents for String {
+    fn content_type() -> ContentType {
+        ContentType::String
+    }
+
+    fn to_value(&self) -> Result<Value, Error> {
+        Value::string(self)
+    }
+
+    fn from_value(v: &Value) -> Result<Self, Error> {
+        v.get_string().map(|x| x.into())
+    }
+}
+
+impl Contents for serde_json::Value {
+    fn content_type() -> ContentType {
+        ContentType::JsonValue
+    }
+
+    fn to_value(&self) -> Result<Value, Error> {
+        let ty = Type::json_value()?;
+        let s = serde_json::to_string(self)?;
+        Value::of_string(ty, s)
+    }
+
+    fn from_value(v: &Value) -> Result<Self, Error> {
+        let s = v.to_string()?;
+        serde_json::from_str(s.as_ref()).map_err(Error::from)
+    }
+}
+
+impl Contents for serde_json::Map<String, serde_json::Value> {
+    fn content_type() -> ContentType {
+        ContentType::Json
+    }
+
+    fn to_value(&self) -> Result<Value, Error> {
+        let ty = Type::json()?;
+        let s = serde_json::to_string(self)?;
+        Value::of_string(ty, s)
+    }
+
+    fn from_value(v: &Value) -> Result<Self, Error> {
+        let s = v.to_string()?;
+        serde_json::from_str(s.as_ref()).map_err(Error::from)
     }
 }
 

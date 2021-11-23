@@ -1,5 +1,6 @@
 mod commit;
 mod config;
+mod hash;
 mod info;
 mod irmin_string;
 mod path;
@@ -14,6 +15,7 @@ pub mod bindings;
 pub(crate) mod prelude {
     pub use crate::commit::Commit;
     pub use crate::config::{Config, ContentType, Contents, HashType};
+    pub use crate::hash::Hash;
     pub use crate::info::Info;
     pub use crate::irmin_string::IrminString;
     pub use crate::path::Path;
@@ -35,6 +37,13 @@ pub use crate::prelude::*;
 #[derive(Debug)]
 pub enum Error {
     NullPtr,
+    Json(serde_json::Error),
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Error {
+        Error::Json(e)
+    }
 }
 
 #[cfg(test)]

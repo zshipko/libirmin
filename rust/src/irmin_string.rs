@@ -1,5 +1,3 @@
-use crate::internal::*;
-
 pub struct IrminString(pub *mut std::os::raw::c_char, pub i32);
 
 extern "C" {
@@ -45,33 +43,5 @@ impl AsRef<std::ffi::CStr> for IrminString {
 impl Into<String> for IrminString {
     fn into(self) -> String {
         self.as_str().to_string()
-    }
-}
-
-impl Contents for IrminString {
-    fn content_type() -> ContentType {
-        ContentType::String
-    }
-
-    fn to_value(&self) -> Result<Value, Error> {
-        Value::string(self)
-    }
-
-    fn from_value(v: &Value) -> Result<Self, Error> {
-        v.get_string()
-    }
-}
-
-impl Contents for String {
-    fn content_type() -> ContentType {
-        ContentType::String
-    }
-
-    fn to_value(&self) -> Result<Value, Error> {
-        Value::string(self)
-    }
-
-    fn from_value(v: &Value) -> Result<Self, Error> {
-        v.get_string().map(|x| x.into())
     }
 }

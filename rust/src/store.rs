@@ -50,7 +50,8 @@ impl<'a, T: Contents> Store<'a, T> {
             return Ok(None);
         }
 
-        let v = Value { ptr: r };
+        let ty = T::ty()?;
+        let v = Value { ptr: r, ty };
         let v = T::from_value(&v)?;
         Ok(Some(v))
     }

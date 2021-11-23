@@ -85,6 +85,23 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Irmin.Type.(unstage (equal Store.hash_t)) a b)
 
   let () =
+    fn "contents_hash"
+      (repo @-> value @-> returning hash)
+      (fun repo a ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let a = Root.get a in
+        Root.create (Store.Contents.hash a))
+
+  let () =
+    fn "contents_of_hash"
+      (repo @-> hash @-> returning value)
+      (fun repo a ->
+        let (module Store : Irmin.Generic_key.S), repo = Root.get repo in
+        let a = Root.get a in
+        let c = run @@ Store.Contents.of_hash repo a in
+        match c with Some c -> Root.create c | None -> null)
+
+  let () =
     fn "hash_to_string"
       (repo @-> hash @-> ptr int @-> returning (ptr char))
       (fun repo hash l ->

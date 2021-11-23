@@ -29,8 +29,11 @@ fn main() {
 
     let header = if std::path::Path::new("irmin.h").exists() {
         "./irmin.h"
-    } else {
+    } else if std::path::Path::new("../irmin.h").exists() {
         "../irmin.h"
+    } else {
+        println!("{:?}", path);
+        panic!("Unable to locate irmin header");
     };
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes

@@ -52,7 +52,8 @@ impl<'a, T: Contents> Tree<'a, T> {
             if ptr.is_null() {
                 return Ok(None);
             }
-            let x = Value { ptr };
+            let ty = T::ty()?;
+            let x = Value { ptr, ty };
             let value = T::from_value(&x)?;
             Ok(Some(value))
         }

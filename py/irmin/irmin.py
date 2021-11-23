@@ -281,6 +281,19 @@ class Path:
             ptr = lib.irmin_path(self.repo._repo, x)
         self._path = ptr
 
+    def append(self, s):
+        b = str.encode(s)
+        ptr = lib.irmin_path_append(self.repo._repo, self._path, b, len(b))
+        if ptr == ffi.NULL:
+            return None
+        return Path(self.repo, ptr)
+
+    def parent(self):
+        ptr = lib.irmin_path_parent(self.repo._repo, self._path)
+        if ptr == ffi.NULL:
+            return None
+        return Path(self.repo, ptr)
+
     def __eq__(self, other: 'Path') -> bool:  # type: ignore
         return lib.irmin_path_equal(self.repo._repo, self._path, other._path)
 
