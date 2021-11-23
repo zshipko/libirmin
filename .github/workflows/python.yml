@@ -32,8 +32,8 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-compiler}}
 
-      - run: opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action
-      - run: opam install . --deps-only --with-doc --with-test || :
+      - run: "opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action"
+      - run: "opam install . --deps-only --with-doc --with-test || :"
       - run: opam install irmin-tezos irmin-unix
       - run: pip3 install cffi --user
       - run: pip3 install . --user
