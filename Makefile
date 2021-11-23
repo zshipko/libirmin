@@ -1,10 +1,6 @@
 PREFIX?=/usr/local
 
-ifeq ($(shell uname -s),Darwin)
-	SOEXT=dylib
-else
-	SOEXT?=so
-endif
+SOEXT?=so
 
 .PHONY: build
 build:
