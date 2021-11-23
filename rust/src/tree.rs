@@ -21,4 +21,54 @@ impl<'a, T: Contents> Tree<'a, T> {
             Ok(Tree { ptr, repo })
         }
     }
+
+    pub fn add(&mut self, path: &Path, value: &T) -> Result<(), Error> {
+        unsafe {
+            let value = value.to_value()?;
+            irmin_tree_add(self.repo.ptr, self.ptr, path.ptr, value.ptr);
+            Ok(())
+        }
+    }
+
+    pub fn add_tree(&mut self, path: &Path, tree: &Tree<T>) {
+        unsafe { irmin_tree_add_tree(self.repo.ptr, self.ptr, path.ptr, tree.ptr) }
+    }
+
+    pub fn mem(&mut self, path: &Path) -> bool {
+        unsafe { irmin_tree_mem(self.repo.ptr, self.ptr, path.ptr) }
+    }
+
+    pub fn mem_tree(&mut self, path: &Path) -> bool {
+        unsafe { irmin_tree_mem_tree(self.repo.ptr, self.ptr, path.ptr) }
+    }
+
+    pub fn remove(&mut self, path: &Path) {
+        unsafe { irmin_tree_remove(self.repo.ptr, self.ptr, path.ptr) }
+    }
+
+    pub fn find(&mut self, path: &Path) -> Result<Option<T>, Error> {
+        unsafe {
+            let ptr = irmin_tree_find(self.repo.ptr, self.ptr, path.ptr);
+            if ptr.is_null() {
+                return Ok(None);
+            }
+            let x = Value { ptr };
+            let value = T::from_value(&x)?;
+            Ok(Some(value))
+        }
+    }
+
+    pub fn find_tree(&mut self, path: &Path) -> Result<Option<Tree<T>>, Error> {
+        unsafe {
+            let ptr = irmin_tree_find_tree(self.repo.ptr, self.ptr, path.ptr);
+            if ptr.is_null() {
+                return Ok(None);
+            }
+            let x = Tree {
+                ptr,
+                repo: self.repo,
+            };
+            Ok(Some(x))
+        }
+    }
 }

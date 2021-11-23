@@ -54,6 +54,32 @@ impl<'a, T: Contents> Store<'a, T> {
         let v = T::from_value(&v)?;
         Ok(Some(v))
     }
+
+    pub fn find_tree(&mut self, path: &Path) -> Result<Option<Tree<T>>, Error> {
+        unsafe {
+            let ptr = irmin_find_tree(self.ptr, path.ptr);
+            if ptr.is_null() {
+                return Ok(None);
+            }
+            let x = Tree {
+                ptr,
+                repo: self.repo,
+            };
+            Ok(Some(x))
+        }
+    }
+
+    pub fn mem(&mut self, path: &Path) -> bool {
+        unsafe { irmin_mem(self.ptr, path.ptr) }
+    }
+
+    pub fn mem_tree(&mut self, path: &Path) -> bool {
+        unsafe { irmin_mem_tree(self.ptr, path.ptr) }
+    }
+
+    pub fn remove(&mut self, path: &Path, info: Info) {
+        unsafe { irmin_remove(self.ptr, path.ptr, info.ptr) }
+    }
 }
 
 impl<'a, T: Contents> Drop for Store<'a, T> {
