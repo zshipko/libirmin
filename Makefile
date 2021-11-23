@@ -26,4 +26,4 @@ uninstall:
 .PHONY: test
 test: build
 	$(CC) -o test/test test/test.c -I . -L . -lirmin -g
-	LD_LIBRARY_PATH=. ./test/test
+	LD_LIBRARY_PATH=. DYLD_FALLBACK_LIBRARY_PATH=. ./test/test
