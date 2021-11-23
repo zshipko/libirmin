@@ -23,7 +23,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let tree : Store.tree = Root.get tree in
         let path : Store.path = Root.get path in
-        Lwt_main.run (Store.Tree.mem tree path))
+        run (Store.Tree.mem tree path))
 
   let () =
     fn "tree_mem_tree"
@@ -32,7 +32,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let tree : Store.tree = Root.get tree in
         let path : Store.path = Root.get path in
-        Lwt_main.run (Store.Tree.mem_tree tree path))
+        run (Store.Tree.mem_tree tree path))
 
   let () =
     fn "tree_find"
@@ -41,7 +41,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let tree : Store.tree = Root.get tree in
         let path : Store.path = Root.get path in
-        match Lwt_main.run (Store.Tree.find tree path) with
+        match run (Store.Tree.find tree path) with
         | None -> null
         | Some x -> Root.create x)
 
@@ -52,7 +52,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let tree : Store.tree = Root.get tree in
         let path : Store.path = Root.get path in
-        match Lwt_main.run (Store.Tree.find_tree tree path) with
+        match run (Store.Tree.find_tree tree path) with
         | None -> null
         | Some x -> Root.create x)
 
@@ -64,7 +64,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let tree' : Store.tree = Root.get tree in
         let path : Store.path = Root.get path in
         let value : Store.contents = Root.get value in
-        let t = Lwt_main.run (Store.Tree.add tree' path value) in
+        let t = run (Store.Tree.add tree' path value) in
         Root.set tree t)
 
   let () =
@@ -75,7 +75,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let tree' : Store.tree = Root.get tree in
         let path : Store.path = Root.get path in
         let value : Store.tree = Root.get tr in
-        let t = Lwt_main.run (Store.Tree.add_tree tree' path value) in
+        let t = run (Store.Tree.add_tree tree' path value) in
         Root.set tree t)
 
   let () =
@@ -85,7 +85,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let tree' : Store.tree = Root.get tree in
         let path : Store.path = Root.get path in
-        let t = Lwt_main.run (Store.Tree.remove tree' path) in
+        let t = run (Store.Tree.remove tree' path) in
         Root.set tree t)
 
   let () =

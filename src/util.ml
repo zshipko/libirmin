@@ -33,4 +33,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let fn ?(lock = false) name t f =
     I.internal ~runtime_lock:lock ("irmin_" ^ name) t f
+
+  let rec run x =
+    Lwt.wakeup_paused ();
+    match Lwt.poll x with
+    | Some x -> x
+    | None ->
+        let () = Lwt_engine.iter true in
+        run x
 end
