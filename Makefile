@@ -25,5 +25,5 @@ uninstall:
 
 .PHONY: test
 test: build
-	$(CC) -o test/test test/test.c -I _build/default/lib/ -L _build/default/lib/ -lirmin -g
-	LD_LIBRARY_PATH=_build/default/lib ./test/test
+	$(CC) -o test/test test/test.c -I . -L . -lirmin -g
+	LD_LIBRARY_PATH=. ./test/test
