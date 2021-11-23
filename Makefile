@@ -14,6 +14,7 @@ build:
 clean:
 	@dune clean
 	@rm -rf libirmin.$(SOEXT) py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
+	@cd rust && cargo clean
 
 install:
 	install irmin.h $(PREFIX)/include

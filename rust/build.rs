@@ -1,7 +1,7 @@
 fn main() {
     let path = std::env::current_dir().unwrap();
 
-    let header = if std::path::Path::new("Makefile").exists() {
+    if std::path::Path::new("Makefile").exists() {
         std::process::Command::new("make").spawn().unwrap();
 
         std::process::Command::new("cp")
@@ -9,8 +9,6 @@ fn main() {
             .arg("rust")
             .spawn()
             .unwrap();
-
-        "./irmin.h"
     } else {
         std::process::Command::new("make")
             .arg("-C")
@@ -23,13 +21,17 @@ fn main() {
             .arg(".")
             .spawn()
             .unwrap();
-
-        "../irmin.h"
     };
 
     println!("cargo:rustc-link-lib=irmin");
     println!("cargo:rustc-link-search=.");
     println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path.display());
+
+    let header = if std::path::Path::new("irmin.h").exists() {
+        "./irmin.h"
+    } else {
+        "../irmin.h"
+    };
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     println!("cargo:rerun-if-changed={}", header);

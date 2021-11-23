@@ -18,8 +18,6 @@ jobs:
           - ubuntu-latest
         ocaml-compiler:
           - 4.13.1
-          - 4.12.1
-          - 4.11.0
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -30,21 +28,16 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-compiler}}
 
-      - run: "opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action"
-      - run: "opam install . --deps-only --with-doc --with-test || :"
-      - run: opam install irmin-tezos irmin-unix
-      - run: opam exec -- make test
-
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --manifest-path ./rust/Cargo.toml -- --test-threads=1
 
-
+      - run: "opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action"
+      - run: "opam install . --deps-only --with-doc --with-test || :"
+      - run: opam install irmin-tezos irmin-unix
+      - run: opam exec -- make
+      - run: opam exec -- cargo test --manifest-path=rust/Cargo.toml -- --test-threads=1
 
