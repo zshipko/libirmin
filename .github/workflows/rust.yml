@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  python:
+  rust:
     strategy:
       fail-fast: true
       matrix:
@@ -33,8 +33,18 @@ jobs:
       - run: "opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action"
       - run: "opam install . --deps-only --with-doc --with-test || :"
       - run: opam install irmin-tezos irmin-unix
-      - run: pip3 install cffi --user
-      - run: opam exec -- make
-      - run: opam exec -- pip3 install . --user
-      - run: python3 py/test.py
+      - run: opam exec -- make test
+
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --manifest-path ./rust/Cargo.toml -- --test-threads=1
+
+
 
