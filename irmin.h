@@ -11,6 +11,8 @@ typedef struct IrminTree IrminTree;
 typedef struct IrminCommit IrminCommit;
 typedef struct IrminInfo IrminInfo;
 typedef struct IrminHash IrminHash;
+void caml_startup(char *argv[]);
+void caml_shutdown();
 IrminType* irmin_type_unit(void);
 IrminType* irmin_type_bool(void);
 IrminType* irmin_type_int(void);

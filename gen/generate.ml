@@ -44,6 +44,8 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
       "IrminInfo";
       "IrminHash";
     ];
+    writeln h_fd "void caml_startup(char *argv[]);";
+    writeln h_fd "void caml_shutdown();";
 
     Cstubs_inverted.write_c_header
       (Format.formatter_of_out_channel h_fd) ~prefix stubs;
