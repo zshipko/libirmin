@@ -13,4 +13,4 @@ irmin.egg-info
 __pycache__
 py/irmin/irmin.h
 rust/Cargo.lock
-rust/target
+target
