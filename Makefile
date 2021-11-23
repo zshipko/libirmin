@@ -1,26 +1,23 @@
 PREFIX?=/usr/local
 
-ifeq ($(shell uname -s),Darwin)
-	SOEXT=dylib
-else
-	SOEXT?=so
-endif
+SOEXT?=so
 
-
+.PHONY: build
 build:
-	@rm -rf out
-	@mkdir out
+	@rm -rf irmin.h libirmin.$(SOEXT) py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 	dune build
-	cp _build/default/lib/irmin.h ./out
-	cp _build/default/lib/libirmin.$(SOEXT) ./out
+	cp _build/default/lib/irmin.h  .
+	cp _build/default/lib/libirmin.$(SOEXT) .
+	cp _build/default/lib/irmin.h  py/irmin
+	cp _build/default/lib/libirmin.$(SOEXT) py/irmin
 
 clean:
 	@dune clean
-	@rm -rf out
+	@rm -rf libirmin.$(SOEXT) py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 
 install:
-	install out/irmin.h $(PREFIX)/include
-	install out/libirmin.$(SOEXT) $(PREFIX)/lib
+	install irmin.h $(PREFIX)/include
+	install libirmin.$(SOEXT) $(PREFIX)/lib
 
 uninstall:
 	rm -f $(PREFIX)/include/irmin.h
@@ -28,5 +25,5 @@ uninstall:
 
 .PHONY: test
 test: build
-	$(CC) -o test/test test/test.c -I _build/default/lib/ -L _build/default/lib/ -lirmin -g
-	LD_LIBRARY_PATH=_build/default/lib ./test/test
+	$(CC) -o test/test test/test.c -I . -L . -lirmin -g
+	LD_LIBRARY_PATH=. DYLD_FALLBACK_LIBRARY_PATH=. ./test/test

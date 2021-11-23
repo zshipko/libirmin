@@ -3,13 +3,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "repo_new"
-      (schema @-> config @-> returning repo)
-      (fun schema config ->
-        let (module Store : Irmin.S), _, _ =
-          Root.get schema |> Irmin_unix.Resolver.Store.destruct
-        in
-        let config : config = Root.get config in
-        Root.create (Store.Repo.v config))
+      (config @-> returning repo)
+      (fun config ->
+        let (s, config) : config = Root.get config in
+        let (module Store) = Irmin_unix.Resolver.Store.generic_keyed s in
+        let repo = run (Store.Repo.v config) in
+        Root.create ((module Store : Irmin.Generic_key.S), repo))
 
   let () = fn "repo_free" (repo @-> returning void) free
 end

@@ -5,7 +5,6 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
   include Config.Make (I)
   include Store.Make (I)
   include Tree.Make (I)
-  include Schema.Make (I)
   include Repo.Make (I)
   include Commit.Make (I)
 end

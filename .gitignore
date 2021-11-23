@@ -1,4 +1,14 @@
-out
+libirmin.so
+libirmin.dylib
 test/test
 tmp*
 compile_flags.txt
+py/*.c
+py/*.so
+py/*.o
+build
+dist
+irmin.egg-info
+.eggs
+__pycache__
+py/irmin/irmin.h

@@ -1,0 +1,39 @@
+name: libirmin
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+        ocaml-compiler:
+          - 4.13.1
+          - 4.12.1
+          - 4.11.0
+          - 4.09.1
+          - 4.08.1
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Use OCaml ${{ matrix.ocaml-version }}
+        uses: avsm/setup-ocaml@v2
+        with:
+          ocaml-version: ${{ matrix.ocaml-compiler}}
+
+      - run: "opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action"
+      - run: "opam install . --deps-only --with-doc --with-test || :"
+      - run: opam install irmin-tezos irmin-unix
+      - run: opam exec -- make test
+
