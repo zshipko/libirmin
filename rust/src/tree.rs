@@ -11,6 +11,12 @@ impl<'a, T: Contents> Drop for Tree<'a, T> {
     }
 }
 
+impl<'a, T: Contents> PartialEq for Tree<'a, T> {
+    fn eq(&self, other: &Tree<'a, T>) -> bool {
+        unsafe { irmin_tree_equal(self.repo.ptr, self.ptr, other.ptr) }
+    }
+}
+
 impl<'a, T: Contents> Tree<'a, T> {
     pub fn new(repo: &'a Repo<T>) -> Result<Tree<'a, T>, Error> {
         unsafe {

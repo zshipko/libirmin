@@ -5,6 +5,18 @@ pub struct Path<'a> {
     repo: UntypedRepo<'a>,
 }
 
+impl<'a> Drop for Path<'a> {
+    fn drop(&mut self) {
+        unsafe { irmin_path_free(self.ptr) }
+    }
+}
+
+impl<'a> PartialEq for Path<'a> {
+    fn eq(&self, other: &Path<'a>) -> bool {
+        unsafe { irmin_path_equal(self.repo.ptr, self.ptr, other.ptr) }
+    }
+}
+
 impl<'a> Path<'a> {
     pub fn new<T: Contents>(repo: &'a Repo<T>, s: impl AsRef<str>) -> Result<Path, Error> {
         unsafe {
@@ -18,6 +30,20 @@ impl<'a> Path<'a> {
                 repo: UntypedRepo::new(repo),
             })
         }
+    }
+
+    pub fn from_vec<T: Contents>(repo: &'a Repo<T>, s: &Vec<&str>) -> Result<Path<'a>, Error> {
+        let s: Vec<_> = s.iter().map(cstring).collect();
+        let t: Vec<_> = s.iter().map(|x| x.as_ptr() as *mut u8).collect();
+        t.push(std::ptr::null_mut());
+        let ptr = unsafe { irmin_path(repo.ptr, t.as_ptr() as *mut _) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+        Ok(Path {
+            ptr,
+            repo: UntypedRepo::new(repo),
+        })
     }
 
     pub fn parent(&self) -> Option<Path<'a>> {
@@ -59,11 +85,5 @@ impl<'a> Path<'a> {
         }
         let s = IrminString(ptr, len);
         s.into()
-    }
-}
-
-impl<'a> Drop for Path<'a> {
-    fn drop(&mut self) {
-        unsafe { irmin_path_free(self.ptr) }
     }
 }

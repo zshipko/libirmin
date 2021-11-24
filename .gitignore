@@ -2,6 +2,7 @@ libirmin.so
 libirmin.dylib
 test/test
 tmp*
+test*
 compile_flags.txt
 py/*.c
 py/*.so

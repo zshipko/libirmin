@@ -11,8 +11,18 @@ impl Drop for IrminString {
 }
 
 impl IrminString {
-    fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         self.as_ref()
+    }
+
+    pub fn as_slice(&self) -> &[u8] {
+        self.as_ref()
+    }
+}
+
+impl PartialEq for IrminString {
+    fn eq(&self, other: &IrminString) -> bool {
+        self.as_slice() == other.as_slice()
     }
 }
 
@@ -43,5 +53,11 @@ impl AsRef<std::ffi::CStr> for IrminString {
 impl Into<String> for IrminString {
     fn into(self) -> String {
         self.as_str().to_string()
+    }
+}
+
+impl Into<Vec<u8>> for IrminString {
+    fn into(self) -> Vec<u8> {
+        self.as_slice().into()
     }
 }

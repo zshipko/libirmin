@@ -11,6 +11,26 @@ impl Drop for Value {
     }
 }
 
+impl Clone for Value {
+    fn clone(&self) -> Value {
+        let ptr = unsafe { irmin_value_make(self.ptr as *mut _) };
+        Value {
+            ty: self.ty.clone(),
+            ptr,
+        }
+    }
+}
+
+impl PartialEq for Value {
+    fn eq(&self, other: &Value) -> bool {
+        let x = match (self.ty.name(), other.ty.name()) {
+            (Ok(a), Ok(b)) => a == b,
+            (_, _) => return false,
+        };
+        x && unsafe { irmin_value_equal(self.ty.ptr, self.ptr, other.ptr) }
+    }
+}
+
 impl Value {
     pub fn string(s: impl AsRef<str>) -> Result<Value, Error> {
         let s = s.as_ref();
@@ -21,6 +41,41 @@ impl Value {
         }
 
         let ty = Type::string()?;
+
+        Ok(Value { ptr, ty })
+    }
+
+    pub fn bytes(s: impl AsRef<[u8]>) -> Result<Value, Error> {
+        let s = s.as_ref();
+
+        let ptr = unsafe { irmin_value_string(s.as_ptr() as *mut _, s.len() as i32) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+
+        let ty = Type::string()?;
+
+        Ok(Value { ptr, ty })
+    }
+
+    pub fn int(i: i32) -> Result<Value, Error> {
+        let ptr = unsafe { irmin_value_int(i) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+
+        let ty = Type::int()?;
+
+        Ok(Value { ptr, ty })
+    }
+
+    pub fn float(i: f32) -> Result<Value, Error> {
+        let ptr = unsafe { irmin_value_float(i) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+
+        let ty = Type::float()?;
 
         Ok(Value { ptr, ty })
     }

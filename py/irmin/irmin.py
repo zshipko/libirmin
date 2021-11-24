@@ -20,6 +20,18 @@ class Type:
         return Type(lib.irmin_type_string())
 
     @staticmethod
+    def int() -> 'Type':
+        return Type(lib.irmin_type_int())
+
+    @staticmethod
+    def float() -> 'Type':
+        return Type(lib.irmin_type_float())
+
+    @staticmethod
+    def bool() -> 'Type':
+        return Type(lib.irmin_type_bool())
+
+    @staticmethod
     def json() -> 'Type':
         return Type(lib.irmin_type_json())
 
@@ -79,6 +91,18 @@ class Value:
     @staticmethod
     def unit() -> 'Value':
         return Value(lib.irmin_value_unit(), Type.unit())
+
+    @staticmethod
+    def int(i: int) -> 'Value':
+        return Value(lib.irmin_value_int(i), Type.int())
+
+    @staticmethod
+    def float(f: float) -> 'Value':
+        return Value(lib.irmin_value_float(f), Type.float())
+
+    @staticmethod
+    def bool(f: bool) -> 'Value':
+        return Value(lib.irmin_value_bool(f), Type.bool())
 
     @staticmethod
     def string(s: str) -> 'Value':

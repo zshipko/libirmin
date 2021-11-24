@@ -28,7 +28,6 @@ where
     Self: Sized,
 {
     fn content_type() -> ContentType;
-
     fn to_value(&self) -> Result<Value, Error>;
     fn from_value(v: &Value) -> Result<Self, Error>;
 
@@ -99,6 +98,20 @@ impl Contents for String {
     }
 }
 
+impl Contents for Vec<u8> {
+    fn content_type() -> ContentType {
+        ContentType::String
+    }
+
+    fn to_value(&self) -> Result<Value, Error> {
+        Value::bytes(self)
+    }
+
+    fn from_value(v: &Value) -> Result<Self, Error> {
+        v.get_string().map(|x| x.into())
+    }
+}
+
 impl Contents for serde_json::Value {
     fn content_type() -> ContentType {
         ContentType::JsonValue
@@ -129,6 +142,7 @@ impl Contents for serde_json::Map<String, serde_json::Value> {
 
     fn from_value(v: &Value) -> Result<Self, Error> {
         let s = v.to_string()?;
+
         serde_json::from_str(s.as_ref()).map_err(Error::from)
     }
 }
@@ -212,6 +226,12 @@ impl<T: Contents> Config<T> {
                 _t: std::marker::PhantomData,
             })
         }
+    }
+
+    pub fn set(&mut self, key: impl AsRef<str>, ty: &Type, v: &Value) -> Result<bool, Error> {
+        let key = cstring(key);
+        let x = unsafe { irmin_config_set(self.ptr, key.as_ptr() as *mut _, ty.ptr, v.ptr) };
+        Ok(x)
     }
 
     pub fn set_root(&mut self, root: impl AsRef<std::path::Path>) -> Result<bool, Error> {

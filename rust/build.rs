@@ -15,8 +15,6 @@ fn main() {
 
     let header = format!("{}/../_build/default/irmin.h", path);
 
-    std::process::Command::new("ls").arg("..").spawn().unwrap();
-
     println!("cargo:rustc-link-lib=irmin");
     println!("cargo:rustc-link-search={}", path);
     println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path);
@@ -32,5 +30,12 @@ fn main() {
         .unwrap();
 
     let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
+
+    println!("AAA");
+    std::process::Command::new("ls")
+        .arg(&out_path)
+        .spawn()
+        .unwrap();
     bindings.write_to_file(out_path.join("c.rs")).unwrap();
+    panic!("XXX")
 }

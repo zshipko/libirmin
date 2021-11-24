@@ -15,6 +15,11 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "type_int" (void @-> returning ty) (fun () -> Root.create Irmin.Type.int)
 
   let () =
+    fn "type_float"
+      (void @-> returning ty)
+      (fun () -> Root.create Irmin.Type.float)
+
+  let () =
     fn "type_string"
       (void @-> returning ty)
       (fun () -> Root.create Irmin.Type.string)

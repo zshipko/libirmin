@@ -10,6 +10,8 @@
  (modules libirmin irmin_bindings)
  (foreign_stubs (language c) (names irmin)))
 
+(dirs :standard \ rust py target build dist include lib)
+
 (env
   (dev
     (flags (:standard -w -unused-var-strict))))

@@ -5,6 +5,12 @@ pub struct Hash<'a> {
     pub(crate) repo: UntypedRepo<'a>,
 }
 
+impl<'a> PartialEq for Hash<'a> {
+    fn eq(&self, other: &Hash<'a>) -> bool {
+        unsafe { irmin_hash_equal(self.repo.ptr, self.ptr, other.ptr) }
+    }
+}
+
 impl<'a> Hash<'a> {
     pub fn of_string<T: Contents>(
         repo: &'a Repo<T>,
