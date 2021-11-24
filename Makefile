@@ -4,7 +4,7 @@ SOEXT?=so
 
 .PHONY: build
 build:
-	@rm -rf irmin.h libirmin.$(SOEXT) py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
+	@rm -rf py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 	dune build
 	cp _build/default/lib/irmin.h  .
 	cp _build/default/lib/libirmin.$(SOEXT) .
