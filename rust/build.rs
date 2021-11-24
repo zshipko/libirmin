@@ -1,33 +1,35 @@
 fn main() {
-    let path = std::env::current_dir().unwrap().canonicalize().unwrap();
+    let path = std::env::var("CARGO_MANIFEST_DIR").unwrap();
 
     std::process::Command::new("make")
         .arg("-C")
-        .arg("..")
+        .arg(format!("{}/..", path))
         .spawn()
         .unwrap();
 
     std::process::Command::new("cp")
-        .arg("../libirmin.so")
+        .arg(format!("{}/../libirmin.so", path))
         .arg(".")
         .spawn()
         .unwrap();
 
     std::process::Command::new("cp")
-        .arg("../irmin.h")
+        .arg(format!("{}/../irmin.h", path))
         .arg(".")
         .spawn()
         .unwrap();
 
     println!("cargo:rustc-link-lib=irmin");
     println!("cargo:rustc-link-search=.");
-    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path.display());
+    println!("cargo:rustc-link-arg=-Wl,-rpath,.");
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
-    println!("cargo:rerun-if-changed=../irmin.h");
+    println!("cargo:rerun-if-changed=./irmin.h");
+
+    std::process::Command::new("ls").spawn().unwrap();
 
     let bindings = bindgen::builder()
-        .header("../irmin.h")
+        .header("./irmin.h")
         .allowlist_type("Irmin.*")
         .allowlist_function("irmin.*")
         .generate()

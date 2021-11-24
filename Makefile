@@ -25,7 +25,7 @@ uninstall:
 	rm -f $(PREFIX)/lib/libirmin.$(SOEXT)
 
 test-rust: build
-	cd rust && cargo test -- --test-threads=1
+	cargo test -- --test-threads=1
 
 .PHONY: test
 test: build
