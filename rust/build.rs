@@ -22,8 +22,8 @@ fn main() {
     std::process::Command::new("ls").arg("..").spawn().unwrap();
 
     println!("cargo:rustc-link-lib=irmin");
-    println!("cargo:rustc-link-search=.");
-    println!("cargo:rustc-link-arg=-Wl,-rpath,.");
+    println!("cargo:rustc-link-search={}", path);
+    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path);
 
     let header = format!("{}/../irmin.h", path);
     // Tell cargo to invalidate the built crate whenever the wrapper changes
