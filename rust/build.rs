@@ -8,27 +8,18 @@ fn main() {
         .unwrap();
 
     std::process::Command::new("cp")
-        .arg(format!("{}/../libirmin.so", path))
+        .arg(format!("{}/../_build/default/libirmin.so", path))
         .arg(&path)
         .spawn()
         .unwrap();
 
-    let header = format!("{}/../irmin.h", path);
-
-    /*std::process::Command::new("cp")
-    .arg(&header)
-    .arg(&path)
-    .spawn()
-    .unwrap();*/
+    let header = format!("{}/../_build/default/irmin.h", path);
 
     std::process::Command::new("ls").arg("..").spawn().unwrap();
 
     println!("cargo:rustc-link-lib=irmin");
     println!("cargo:rustc-link-search={}", path);
-    println!(
-        "cargo:rustc-link-arg=-Wl,-rpath,{} -Wl,-rpath,{}/../_build/default/lib",
-        path, path
-    );
+    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path);
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     println!("cargo:rerun-if-changed={}", header);

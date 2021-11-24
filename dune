@@ -1,6 +1,6 @@
 (rule
  (targets irmin_bindings.ml irmin.c irmin.h)
- (deps    (:gen ../gen/generate.exe))
+ (deps    (:gen ./gen/generate.exe))
  (action  (run %{gen} .)))
 
 (executable

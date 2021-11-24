@@ -5,20 +5,22 @@ SOEXT?=so
 .PHONY: build
 build:
 	@rm -rf py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
+	@mkdir -p include
+	@mkdir -p lib
 	dune build
-	cp _build/default/lib/irmin.h  .
-	cp _build/default/lib/libirmin.$(SOEXT) .
-	cp _build/default/lib/irmin.h  py/irmin
-	cp _build/default/lib/libirmin.$(SOEXT) py/irmin
+	cp _build/default/irmin.h  ./include
+	cp _build/default/libirmin.$(SOEXT) ./lib
+	cp _build/default/irmin.h  py/irmin
+	cp _build/default/libirmin.$(SOEXT) py/irmin
 
 clean:
 	@dune clean
-	@rm -rf libirmin.$(SOEXT) py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
+	@rm -rf lib py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 	@cd rust && cargo clean
 
 install:
-	install irmin.h $(PREFIX)/include
-	install libirmin.$(SOEXT) $(PREFIX)/lib
+	install ./include/irmin.h $(PREFIX)/include
+	install ./lib/libirmin.$(SOEXT) $(PREFIX)/lib
 
 uninstall:
 	rm -f $(PREFIX)/include/irmin.h
