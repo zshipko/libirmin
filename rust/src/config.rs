@@ -133,6 +133,8 @@ impl Contents for serde_json::Map<String, serde_json::Value> {
     }
 }
 
+const ROOT_KEY: &str = "root\0";
+
 impl<T: Contents> Config<T> {
     pub fn pack(hash: Option<HashType>) -> Result<Config<T>, Error> {
         unsafe {
@@ -210,5 +212,12 @@ impl<T: Contents> Config<T> {
                 _t: std::marker::PhantomData,
             })
         }
+    }
+
+    pub fn set_root(&mut self, root: impl AsRef<std::path::Path>) -> Result<bool, Error> {
+        let t = Type::string()?;
+        let v = Value::string(root.as_ref().to_str().expect("Invalid path"))?;
+        let x = unsafe { irmin_config_set(self.ptr, ROOT_KEY.as_ptr() as *mut _, t.ptr, v.ptr) };
+        Ok(x)
     }
 }

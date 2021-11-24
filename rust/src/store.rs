@@ -37,9 +37,55 @@ impl<'a, T: Contents> Store<'a, T> {
         }
     }
 
+    pub fn test_and_set(
+        &mut self,
+        path: &Path,
+        old: Option<&T>,
+        value: Option<&T>,
+        info: Info,
+    ) -> Result<bool, Error> {
+        let old = match old {
+            Some(value) => Some(value.to_value()?),
+            None => None,
+        };
+        let value = match value {
+            Some(value) => Some(value.to_value()?),
+            None => None,
+        };
+        unsafe {
+            let r = irmin_test_and_set(
+                self.ptr,
+                path.ptr,
+                old.map(|x| x.ptr).unwrap_or_else(|| std::ptr::null_mut()),
+                value.map(|x| x.ptr).unwrap_or_else(|| std::ptr::null_mut()),
+                info.ptr,
+            );
+            Ok(r)
+        }
+    }
+
     pub fn set_tree(&mut self, path: &Path, tree: &Tree<T>, info: Info) -> Result<bool, Error> {
         unsafe {
             let r = irmin_set_tree(self.ptr, path.ptr, tree.ptr, info.ptr);
+            Ok(r)
+        }
+    }
+
+    pub fn test_and_set_tree(
+        &mut self,
+        path: &Path,
+        old: Option<&Tree<T>>,
+        tree: Option<&Tree<T>>,
+        info: Info,
+    ) -> Result<bool, Error> {
+        unsafe {
+            let r = irmin_test_and_set_tree(
+                self.ptr,
+                path.ptr,
+                old.map(|x| x.ptr).unwrap_or_else(|| std::ptr::null_mut()),
+                tree.map(|x| x.ptr).unwrap_or_else(|| std::ptr::null_mut()),
+                info.ptr,
+            );
             Ok(r)
         }
     }

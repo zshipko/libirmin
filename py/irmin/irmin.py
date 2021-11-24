@@ -543,14 +543,45 @@ class Store:
             info = self.info("irmin", "set")
         lib.irmin_set(self._store, path._path, value._value, info._info)
 
+    def test_and_set(self,
+                     path: PathType,
+                     old,
+                     value,
+                     info: Optional[Info] = None):
+        path = Path.wrap(self.repo, path)
+        old = self.repo.config.contents.to_value(
+            old) if value is not None else None
+        value = self.repo.config.contents.to_value(
+            value) if value is not None else None
+        if info is None:
+            info = self.info("irmin", "set")
+        lib.irmin_test_and_set(self._store, path._path,
+                               old._value if old is not None else ffi.NULL,
+                               value._value if value is not None else ffi.NULL,
+                               info._info)
+
     def set_tree(self,
                  path: PathType,
                  tree: Tree,
-                 info: Optional[Info] = None):
+                 info: Optional[Info] = None) -> bool:
         path = Path.wrap(self.repo, path)
         if info is None:
             info = self.info("irmin", "set_tree")
-        lib.irmin_set_tree(self._store, path._path, tree._tree, info._info)
+        return lib.irmin_set_tree(self._store, path._path, tree._tree,
+                                  info._info)
+
+    def test_and_set_tree(self,
+                          path: PathType,
+                          old: Optional[Tree],
+                          tree: Optional[Tree],
+                          info: Optional[Info] = None) -> bool:
+        path = Path.wrap(self.repo, path)
+        if info is None:
+            info = self.info("irmin", "set_tree")
+        return lib.irmin_test_and_set_tree(
+            self._store, path._path,
+            old._tree if old is not None else ffi.NULL,
+            tree._tree if tree is not None else ffi.NULL, info._info)
 
     def mem_tree(self, path: PathType) -> bool:
         path = Path.wrap(self.repo, path)
