@@ -24,10 +24,10 @@ fn main() {
     println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path.display());
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
-    println!("cargo:rerun-if-changed=irmin.h");
+    println!("cargo:rerun-if-changed=../irmin.h");
 
     let bindings = bindgen::builder()
-        .header("irmin.h")
+        .header("../irmin.h")
         .allowlist_type("Irmin.*")
         .allowlist_function("irmin.*")
         .generate()

@@ -24,6 +24,9 @@ uninstall:
 	rm -f $(PREFIX)/include/irmin.h
 	rm -f $(PREFIX)/lib/libirmin.$(SOEXT)
 
+test-rust: build
+	cd rust && cargo test -- --test-threads=1
+
 .PHONY: test
 test: build
 	$(CC) -o test/test test/test.c -I . -L . -lirmin -g

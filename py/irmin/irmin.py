@@ -401,6 +401,15 @@ class Commit:
                                       other._commit)
 
     @staticmethod
+    def new(repo: Repo, parent: 'Commit', tree: 'Tree',
+            info: Info) -> Optional['Commit']:
+        c = lib.irmin_commit_new(repo._repo, parent._commit, tree._tree,
+                                 info._info)
+        if c == ffi.NULL:
+            return None
+        return Commit(repo, c)
+
+    @staticmethod
     def of_hash(repo: Repo, hash: Hash) -> Optional['Commit']:
         c = lib.irmin_commit_of_hash(repo._repo, hash._hash)
         if c == ffi.NULL:
@@ -554,13 +563,11 @@ class Store:
             return None
         return Commit(self.repo, c)
 
-    def revert(self, c: Commit):
+    def set_head(self, c: Commit):
         lib.irmin_set_head(self._store, c._commit)
 
-    def fast_forward(self, c: Commit, info: Optional[Info] = None) -> bool:
-        if info is None:
-            info = self.info("irmin", "fast forward")
-        return lib.irmin_fast_forward(self._store, c._commit, info._info)
+    def fast_forward(self, c: Commit) -> bool:
+        return lib.irmin_fast_forward(self._store, c._commit)
 
     def merge_with_branch(self,
                           branch: str,

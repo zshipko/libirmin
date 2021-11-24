@@ -14,7 +14,7 @@ if d is not None:
     print(d.parents)
 print(store["test", "a"])
 if c is not None:
-    store.revert(c)
+    store.set_head(c)
 print(store["test", "a"])
 head = store.head
 if head is not None:

@@ -82,17 +82,34 @@ impl<'a, T: Contents> Store<'a, T> {
         unsafe { irmin_remove(self.ptr, path.ptr, info.ptr) }
     }
 
-    pub fn head(&self) -> Option<Commit> {
+    pub fn head(&self) -> Option<Commit<'a>> {
         let ptr = unsafe { irmin_get_head(self.ptr) };
         if ptr.is_null() {
             return None;
         }
 
-        Some(Commit { ptr })
+        Some(Commit {
+            ptr,
+            repo_ptr: self.repo.ptr,
+            _t: std::marker::PhantomData,
+        })
     }
 
     pub fn set_head(&self, c: &Commit) {
         unsafe { irmin_set_head(self.ptr, c.ptr) }
+    }
+
+    pub fn fast_forward(&self, c: &Commit) -> bool {
+        unsafe { irmin_fast_forward(self.ptr, c.ptr) }
+    }
+
+    pub fn merge_with_branch(&self, branch: impl AsRef<str>, info: Info) -> bool {
+        let branch = cstring(branch);
+        unsafe { irmin_merge_with_branch(self.ptr, branch.as_ptr() as *mut _, info.ptr) }
+    }
+
+    pub fn merge_with_commit(&self, commit: &Commit, info: Info) -> bool {
+        unsafe { irmin_merge_with_commit(self.ptr, commit.ptr, info.ptr) }
     }
 }
 
