@@ -2,8 +2,7 @@ use crate::internal::*;
 
 pub struct Info<'a> {
     pub ptr: *mut IrminInfo,
-    pub(crate) repo_ptr: *mut IrminRepo,
-    pub(crate) _t: std::marker::PhantomData<&'a ()>,
+    pub(crate) repo: UntypedRepo<'a>,
 }
 
 impl<'a> Info<'a> {
@@ -27,18 +26,17 @@ impl<'a> Info<'a> {
 
         Ok(Info {
             ptr,
-            repo_ptr: repo.ptr,
-            _t: std::marker::PhantomData,
+            repo: UntypedRepo::new(repo),
         })
     }
 
     pub fn date(&self) -> i64 {
-        unsafe { irmin_info_date(self.repo_ptr, self.ptr) }
+        unsafe { irmin_info_date(self.repo.ptr, self.ptr) }
     }
 
     pub fn author(&self) -> Result<IrminString, Error> {
         let mut len = 0;
-        let ptr = unsafe { irmin_info_author(self.repo_ptr, self.ptr, &mut len) };
+        let ptr = unsafe { irmin_info_author(self.repo.ptr, self.ptr, &mut len) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
@@ -47,7 +45,7 @@ impl<'a> Info<'a> {
 
     pub fn message(&self) -> Result<IrminString, Error> {
         let mut len = 0;
-        let ptr = unsafe { irmin_info_message(self.repo_ptr, self.ptr, &mut len) };
+        let ptr = unsafe { irmin_info_message(self.repo.ptr, self.ptr, &mut len) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }

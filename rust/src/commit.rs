@@ -2,8 +2,7 @@ use crate::internal::*;
 
 pub struct Commit<'a> {
     pub ptr: *mut IrminCommit,
-    pub(crate) repo_ptr: *mut IrminRepo,
-    pub(crate) _t: std::marker::PhantomData<&'a ()>,
+    pub(crate) repo: UntypedRepo<'a>,
 }
 
 impl<'a> Drop for Commit<'a> {
@@ -25,32 +24,29 @@ impl<'a> Commit<'a> {
         }
         Ok(Commit {
             ptr,
-            repo_ptr: repo.ptr,
-            _t: std::marker::PhantomData,
+            repo: UntypedRepo::new(repo),
         })
     }
 
     pub fn hash(&self) -> Result<Hash, Error> {
-        let ptr = unsafe { irmin_commit_hash(self.repo_ptr, self.ptr) };
+        let ptr = unsafe { irmin_commit_hash(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
         Ok(Hash {
             ptr,
-            repo_ptr: self.repo_ptr,
-            _t: std::marker::PhantomData,
+            repo: self.repo.clone(),
         })
     }
 
     pub fn info(&self) -> Result<Info, Error> {
-        let ptr = unsafe { irmin_commit_info(self.repo_ptr, self.ptr) };
+        let ptr = unsafe { irmin_commit_info(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
         Ok(Info {
             ptr,
-            repo_ptr: self.repo_ptr,
-            _t: std::marker::PhantomData,
+            repo: self.repo.clone(),
         })
     }
 }

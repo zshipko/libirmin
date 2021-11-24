@@ -2,8 +2,7 @@ use crate::internal::*;
 
 pub struct Path<'a> {
     pub ptr: *mut IrminPath,
-    repo_ptr: *mut IrminRepo,
-    _t: std::marker::PhantomData<&'a ()>,
+    repo: UntypedRepo<'a>,
 }
 
 impl<'a> Path<'a> {
@@ -16,21 +15,19 @@ impl<'a> Path<'a> {
             }
             Ok(Path {
                 ptr,
-                repo_ptr: repo.ptr,
-                _t: std::marker::PhantomData,
+                repo: UntypedRepo::new(repo),
             })
         }
     }
 
     pub fn parent(&self) -> Option<Path<'a>> {
-        let ptr = unsafe { irmin_path_parent(self.repo_ptr, self.ptr) };
+        let ptr = unsafe { irmin_path_parent(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
             return None;
         }
         Some(Path {
             ptr,
-            repo_ptr: self.repo_ptr,
-            _t: std::marker::PhantomData,
+            repo: self.repo.clone(),
         })
     }
 
@@ -38,7 +35,7 @@ impl<'a> Path<'a> {
         let s = s.as_ref();
         let ptr = unsafe {
             irmin_path_append(
-                self.repo_ptr,
+                self.repo.ptr,
                 self.ptr,
                 s.as_ptr() as *mut _,
                 s.len() as i32,
@@ -49,14 +46,14 @@ impl<'a> Path<'a> {
         }
         Ok(Path {
             ptr,
-            repo_ptr: self.repo_ptr,
-            _t: std::marker::PhantomData,
+
+            repo: self.repo.clone(),
         })
     }
 
     pub fn to_string(&self) -> String {
         let mut len = 0i32;
-        let ptr = unsafe { irmin_path_to_string(self.repo_ptr, self.ptr, &mut len) };
+        let ptr = unsafe { irmin_path_to_string(self.repo.ptr, self.ptr, &mut len) };
         if ptr.is_null() {
             return String::new();
         }

@@ -8,6 +8,7 @@ mod repo;
 mod store;
 mod tree;
 mod ty;
+mod util;
 mod value;
 
 pub mod bindings;
@@ -30,12 +31,7 @@ pub(crate) mod prelude {
 pub(crate) mod internal {
     pub use crate::bindings::*;
     pub use crate::prelude::*;
-
-    pub(crate) fn cstring(s: impl AsRef<str>) -> String {
-        let mut s = s.as_ref().to_string();
-        s.push('\0');
-        s
-    }
+    pub use crate::util::*;
 }
 
 pub use crate::prelude::*;

@@ -2,8 +2,7 @@ use crate::internal::*;
 
 pub struct Hash<'a> {
     pub ptr: *mut IrminHash,
-    pub(crate) repo_ptr: *mut IrminRepo,
-    pub(crate) _t: std::marker::PhantomData<&'a ()>,
+    pub(crate) repo: UntypedRepo<'a>,
 }
 
 impl<'a> Hash<'a> {
@@ -18,14 +17,13 @@ impl<'a> Hash<'a> {
         }
         Ok(Hash {
             ptr,
-            repo_ptr: repo.ptr,
-            _t: std::marker::PhantomData,
+            repo: UntypedRepo::new(repo),
         })
     }
 
     pub fn to_string<T: Contents>(&self) -> String {
         let mut len = 0;
-        let s = unsafe { irmin_hash_to_string(self.repo_ptr, self.ptr, &mut len) };
+        let s = unsafe { irmin_hash_to_string(self.repo.ptr, self.ptr, &mut len) };
         if s.is_null() {
             return String::new();
         }

@@ -90,8 +90,7 @@ impl<'a, T: Contents> Store<'a, T> {
 
         Some(Commit {
             ptr,
-            repo_ptr: self.repo.ptr,
-            _t: std::marker::PhantomData,
+            repo: UntypedRepo::new(&self.repo),
         })
     }
 
