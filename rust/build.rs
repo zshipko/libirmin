@@ -31,11 +31,5 @@ fn main() {
 
     let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
 
-    println!("AAA");
-    std::process::Command::new("ls")
-        .arg(&out_path)
-        .spawn()
-        .unwrap();
     bindings.write_to_file(out_path.join("c.rs")).unwrap();
-    panic!("XXX")
 }
