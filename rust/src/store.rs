@@ -29,7 +29,7 @@ impl<'a, T: Contents> Store<'a, T> {
         }
     }
 
-    pub fn set(&self, path: &Path, value: &T, info: Info) -> Result<bool, Error> {
+    pub fn set(&mut self, path: &Path, value: &T, info: Info) -> Result<bool, Error> {
         let value = value.to_value()?;
         unsafe {
             let r = irmin_set(self.ptr, path.ptr, value.ptr, info.ptr);
@@ -37,7 +37,7 @@ impl<'a, T: Contents> Store<'a, T> {
         }
     }
 
-    pub fn set_tree(&self, path: &Path, tree: &Tree<T>, info: Info) -> Result<bool, Error> {
+    pub fn set_tree(&mut self, path: &Path, tree: &Tree<T>, info: Info) -> Result<bool, Error> {
         unsafe {
             let r = irmin_set_tree(self.ptr, path.ptr, tree.ptr, info.ptr);
             Ok(r)
@@ -56,7 +56,7 @@ impl<'a, T: Contents> Store<'a, T> {
         Ok(Some(v))
     }
 
-    pub fn find_tree(&mut self, path: &Path) -> Result<Option<Tree<T>>, Error> {
+    pub fn find_tree(&self, path: &Path) -> Result<Option<Tree<T>>, Error> {
         unsafe {
             let ptr = irmin_find_tree(self.ptr, path.ptr);
             if ptr.is_null() {
@@ -70,11 +70,11 @@ impl<'a, T: Contents> Store<'a, T> {
         }
     }
 
-    pub fn mem(&mut self, path: &Path) -> bool {
+    pub fn mem(&self, path: &Path) -> bool {
         unsafe { irmin_mem(self.ptr, path.ptr) }
     }
 
-    pub fn mem_tree(&mut self, path: &Path) -> bool {
+    pub fn mem_tree(&self, path: &Path) -> bool {
         unsafe { irmin_mem_tree(self.ptr, path.ptr) }
     }
 

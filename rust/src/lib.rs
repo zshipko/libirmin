@@ -52,20 +52,28 @@ mod tests {
     #[test]
     fn it_works() -> Result<(), Error> {
         println!("A");
-        let config = Config::<String>::git_mem()?;
+        let config = Config::<serde_json::Value>::git_mem()?;
 
         println!("B");
         let repo = Repo::new(config)?;
 
         println!("C");
-        let store = Store::new(&repo)?;
+        let mut store = Store::new(&repo)?;
 
         let info = Info::new(&repo, "irmin", "set")?;
-        let path = Path::new(&repo, "a/b/c")?;
-        assert!(store.set(&path, &String::from("testing"), info)?);
+        let path = Path::new(&repo, "foo/bar")?;
+        let value = serde_json::json!({
+            "a": 1,
+            "b": 2,
+            "c": 3,
+        });
+        assert!(store.set(&path, &value, info)?);
 
         let s = store.find(&path)?;
-        assert!(s == Some("testing".to_string()));
+        assert!(s == Some(value));
+
+        let path1 = path.parent().unwrap();
+        assert!(store.mem_tree(&path1));
         Ok(())
     }
 }

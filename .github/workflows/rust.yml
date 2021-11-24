@@ -37,5 +37,5 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: opam exec -- cargo test --manifest-path=rust/Cargo.toml -- --test-threads=1
+      - run: cd rust && opam exec -- cargo test -- --test-threads=1
 

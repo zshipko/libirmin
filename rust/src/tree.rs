@@ -34,11 +34,11 @@ impl<'a, T: Contents> Tree<'a, T> {
         unsafe { irmin_tree_add_tree(self.repo.ptr, self.ptr, path.ptr, tree.ptr) }
     }
 
-    pub fn mem(&mut self, path: &Path) -> bool {
+    pub fn mem(&self, path: &Path) -> bool {
         unsafe { irmin_tree_mem(self.repo.ptr, self.ptr, path.ptr) }
     }
 
-    pub fn mem_tree(&mut self, path: &Path) -> bool {
+    pub fn mem_tree(&self, path: &Path) -> bool {
         unsafe { irmin_tree_mem_tree(self.repo.ptr, self.ptr, path.ptr) }
     }
 
@@ -46,7 +46,7 @@ impl<'a, T: Contents> Tree<'a, T> {
         unsafe { irmin_tree_remove(self.repo.ptr, self.ptr, path.ptr) }
     }
 
-    pub fn find(&mut self, path: &Path) -> Result<Option<T>, Error> {
+    pub fn find(&self, path: &Path) -> Result<Option<T>, Error> {
         unsafe {
             let ptr = irmin_tree_find(self.repo.ptr, self.ptr, path.ptr);
             if ptr.is_null() {
@@ -59,7 +59,7 @@ impl<'a, T: Contents> Tree<'a, T> {
         }
     }
 
-    pub fn find_tree(&mut self, path: &Path) -> Result<Option<Tree<T>>, Error> {
+    pub fn find_tree(&self, path: &Path) -> Result<Option<Tree<T>>, Error> {
         unsafe {
             let ptr = irmin_tree_find_tree(self.repo.ptr, self.ptr, path.ptr);
             if ptr.is_null() {
