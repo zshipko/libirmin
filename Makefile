@@ -31,5 +31,5 @@ test-rust: build
 
 .PHONY: test
 test: build
-	$(CC) -o test/test test/test.c -I . -L . -lirmin -g
-	LD_LIBRARY_PATH=. DYLD_FALLBACK_LIBRARY_PATH=. ./test/test
+	$(CC) -o test/test test/test.c -I . -L lib -lirmin -g
+	LD_LIBRARY_PATH=lib DYLD_FALLBACK_LIBRARY_PATH=lib ./test/test
