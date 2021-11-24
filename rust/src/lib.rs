@@ -48,6 +48,16 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+pub fn set_log_level(s: Option<&str>) {
+    let s = s.map(internal::cstring);
+    unsafe {
+        bindings::irmin_log_level(
+            s.map(|x| x.as_ptr() as *mut _)
+                .unwrap_or_else(|| std::ptr::null_mut()),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;

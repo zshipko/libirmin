@@ -401,10 +401,12 @@ class Commit:
                                       other._commit)
 
     @staticmethod
-    def new(repo: Repo, parent: 'Commit', tree: 'Tree',
+    def new(repo: Repo, parents: Sequence['Commit'], tree: 'Tree',
             info: Info) -> Optional['Commit']:
-        c = lib.irmin_commit_new(repo._repo, parent._commit, tree._tree,
-                                 info._info)
+        n = len(parents)
+        a = [ffi.new("IrminCommit*", arg._commit) for arg in parents]
+        b = ffi.new("IrminCommit*[]", a)
+        c = lib.irmin_commit_new(repo._repo, b, n, tree._tree, info._info)
         if c == ffi.NULL:
             return None
         return Commit(repo, c)

@@ -19,6 +19,8 @@ fn main() {
         .spawn()
         .unwrap();
 
+    std::process::Command::new("ls").arg("..").spawn().unwrap();
+
     println!("cargo:rustc-link-lib=irmin");
     println!("cargo:rustc-link-search=.");
     println!("cargo:rustc-link-arg=-Wl,-rpath,.");

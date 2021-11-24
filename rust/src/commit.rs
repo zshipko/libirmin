@@ -14,11 +14,20 @@ impl<'a> Drop for Commit<'a> {
 impl<'a> Commit<'a> {
     pub fn new<T: Contents>(
         repo: &'a Repo<T>,
-        parent: &Commit,
+        parents: impl AsRef<[&'a Commit<'a>]>,
         tree: &Tree<T>,
         info: Info,
     ) -> Result<Commit<'a>, Error> {
-        let ptr = unsafe { irmin_commit_new(repo.ptr, parent.ptr, tree.ptr, info.ptr) };
+        let parents: Vec<_> = parents.as_ref().into_iter().map(|x| x.ptr).collect();
+        let ptr = unsafe {
+            irmin_commit_new(
+                repo.ptr,
+                parents.as_ptr() as *mut _,
+                parents.len() as i32,
+                tree.ptr,
+                info.ptr,
+            )
+        };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }

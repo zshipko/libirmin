@@ -46,6 +46,27 @@ impl Value {
         Ok(IrminString(s, len))
     }
 
+    pub fn of_json(ty: Type, s: impl AsRef<str>) -> Result<Value, Error> {
+        let s = s.as_ref();
+
+        let ptr = unsafe { irmin_value_of_json(ty.ptr, s.as_ptr() as *mut _, s.len() as i32) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+
+        Ok(Value { ptr, ty })
+    }
+
+    pub fn to_json(&self) -> Result<IrminString, Error> {
+        let mut len = 0;
+        let s = unsafe { irmin_value_to_json(self.ty.ptr, self.ptr, &mut len) };
+        if s.is_null() {
+            return Err(Error::NullPtr);
+        }
+
+        Ok(IrminString(s, len))
+    }
+
     pub fn of_bin(ty: Type, s: impl AsRef<[u8]>) -> Result<Value, Error> {
         let s = s.as_ref();
         let ptr = unsafe { irmin_value_of_bin(ty.ptr, s.as_ptr() as *mut _, s.len() as i32) };
