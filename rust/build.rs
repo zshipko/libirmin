@@ -25,7 +25,10 @@ fn main() {
 
     println!("cargo:rustc-link-lib=irmin");
     println!("cargo:rustc-link-search={}", path);
-    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path);
+    println!(
+        "cargo:rustc-link-arg=-Wl,-rpath,{} -Wl,-rpath,{}/../_build/default",
+        path, path
+    );
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     println!("cargo:rerun-if-changed={}", header);
