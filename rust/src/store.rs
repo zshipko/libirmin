@@ -18,7 +18,7 @@ impl<'a, T: Contents> Store<'a, T> {
     }
 
     pub fn of_branch(repo: &'a Repo<T>, branch: impl AsRef<str>) -> Result<Store<'a, T>, Error> {
-        let branch = format!("{}\0", branch.as_ref());
+        let branch = cstring(branch);
         unsafe {
             let ptr = irmin_of_branch(repo.ptr, branch.as_ptr() as *mut _);
             if ptr.is_null() {
@@ -80,6 +80,19 @@ impl<'a, T: Contents> Store<'a, T> {
 
     pub fn remove(&mut self, path: &Path, info: Info) {
         unsafe { irmin_remove(self.ptr, path.ptr, info.ptr) }
+    }
+
+    pub fn head(&self) -> Option<Commit> {
+        let ptr = unsafe { irmin_get_head(self.ptr) };
+        if ptr.is_null() {
+            return None;
+        }
+
+        Some(Commit { ptr })
+    }
+
+    pub fn set_head(&self, c: &Commit) {
+        unsafe { irmin_set_head(self.ptr, c.ptr) }
     }
 }
 

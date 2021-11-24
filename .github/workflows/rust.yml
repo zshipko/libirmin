@@ -28,14 +28,14 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-compiler}}
 
-      - run: "opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action"
-      - run: "opam install . --deps-only --with-doc --with-test || :"
-      - run: opam install irmin-tezos irmin-unix
-      - run: opam exec -- make
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
-          override: true
-      - run: cd rust && opam exec -- cargo test -- --test-threads=1
+
+      - run: "opam pin add irmin-tezos.dev git+https://github.com/mirage/irmin.git --no-action"
+      - run: "opam install . --deps-only --with-doc --with-test || :"
+      - run: opam install irmin-tezos irmin-unix
+      - run: opam exec -- make
+      - run: opam exec -- cargo test -- --test-threads=1
 

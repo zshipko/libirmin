@@ -10,8 +10,8 @@ impl Info {
         author: impl AsRef<str>,
         message: impl AsRef<str>,
     ) -> Result<Info, Error> {
-        let message = format!("{}\0", message.as_ref());
-        let author = format!("{}\0", author.as_ref());
+        let message = cstring(message);
+        let author = cstring(author);
         let ptr = unsafe {
             irmin_info_new(
                 repo.ptr,
