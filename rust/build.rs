@@ -8,7 +8,7 @@ fn main() {
         .unwrap();
 
     std::process::Command::new("cp")
-        .arg(format!("{}/../_build/default/lib/libirmin.so", path))
+        .arg(format!("{}/../libirmin.so", path))
         .arg(&path)
         .spawn()
         .unwrap();
@@ -26,7 +26,7 @@ fn main() {
     println!("cargo:rustc-link-lib=irmin");
     println!("cargo:rustc-link-search={}", path);
     println!(
-        "cargo:rustc-link-arg=-Wl,-rpath,{} -Wl,-rpath,{}/../_build/default",
+        "cargo:rustc-link-arg=-Wl,-rpath,{} -Wl,-rpath,{}/../_build/default/lib",
         path, path
     );
 
