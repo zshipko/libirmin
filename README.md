@@ -21,7 +21,7 @@ NOTE: `libirmin.so` should be available somewhere in your `LD_LIBRARY_PATH` to e
 
 ## Python bindings
 
-Python bindings can be installed using:
+Python bindings exist in the `py` directory and can be installed using:
 
 ```
 $ python3 -m pip install . --user
