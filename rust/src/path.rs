@@ -34,7 +34,7 @@ impl<'a> Path<'a> {
 
     pub fn from_vec<T: Contents>(repo: &'a Repo<T>, s: &Vec<&str>) -> Result<Path<'a>, Error> {
         let s: Vec<_> = s.iter().map(cstring).collect();
-        let t: Vec<_> = s.iter().map(|x| x.as_ptr() as *mut u8).collect();
+        let mut t: Vec<_> = s.iter().map(|x| x.as_ptr() as *mut u8).collect();
         t.push(std::ptr::null_mut());
         let ptr = unsafe { irmin_path(repo.ptr, t.as_ptr() as *mut _) };
         if ptr.is_null() {
