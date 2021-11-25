@@ -2,7 +2,7 @@
 
 [irmin](https://github.com/mirage/irmin) C library using [ocaml-ctypes](https://github.com/ocamllabs/ocaml-ctypes) inverted stubs.
 
-See [irmin.h](https://github.com/zshipko/libirmin/blob/main/irmin.h) for available functions and types.
+See [irmin.h](https://github.com/zshipko/libirmin/blob/main/include/irmin.h) for available functions and types.
 
 ## C bindings
 
