@@ -82,10 +82,17 @@ mod tests {
         assert!(store.set(&path, &value, info)?);
 
         let s = store.find(&path)?;
-        assert!(s == Some(value));
+        assert!(s.unwrap() == value);
 
         let path1 = path.parent().unwrap();
         assert!(store.mem_tree(&path1));
+
+        let x = store.find_tree(&path1)?;
+        assert!(x.is_some());
+
+        let path2 = Path::from_vec(&repo, &vec!["bar"])?;
+        let y = x.unwrap().find(&path2)?;
+        assert!(y.unwrap() == value);
         Ok(())
     }
 }
