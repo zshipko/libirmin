@@ -5,6 +5,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () = fn "value_int" (int @-> returning value) (fun i -> Root.create i)
 
+  let () = fn "value_float" (float @-> returning value) (fun i -> Root.create i)
+
   let () = fn "value_bool" (bool @-> returning value) (fun b -> Root.create b)
 
   let () =
@@ -33,6 +35,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
   let () = fn "value_get_int" (value @-> returning int) Root.get
 
   let () = fn "value_get_bool" (value @-> returning bool) Root.get
+
+  let () = fn "value_get_float" (value @-> returning float) Root.get
 
   let () =
     fn "value_bytes"

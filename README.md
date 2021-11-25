@@ -9,6 +9,16 @@ See [irmin.h](https://github.com/zshipko/libirmin/blob/main/irmin.h) for availab
 NOTE: All strings returned from `libirmin` should be released using `free`, but `Irmin*` types should be released using the
 corresponding `irmin_*_free` function.
 
+## Rust bindings
+
+Rust bindings exist in the `rust` directory, to use them in your project add the following to your `Cargo.toml` file:
+
+```
+irmin = {git = "https://github.com/zshipko/libirmin"}
+```
+
+NOTE: `libirmin.so` should be available somewhere in your `LD_LIBRARY_PATH` to ensure it's linked correctly
+
 ## Python bindings
 
 Python bindings can be installed using:

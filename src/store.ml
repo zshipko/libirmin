@@ -43,6 +43,26 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         malloc_string s)
 
   let () =
+    fn "path_parent"
+      (repo @-> path @-> returning path)
+      (fun repo p ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let path = Root.get p in
+        let path = Store.Path.rdecons path |> Option.map fst in
+        match path with Some p -> Root.create p | None -> null)
+
+  let () =
+    fn "path_append"
+      (repo @-> path @-> ptr char @-> int @-> returning path)
+      (fun repo p s length ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let path = Root.get p in
+        let length = if length < 0 then strlen s else length in
+        let s = string_from_ptr s ~length in
+        let s = Irmin.Type.of_string Store.step_t s |> Result.get_ok in
+        Root.create (Store.Path.rcons path s))
+
+  let () =
     fn "path_equal"
       (repo @-> path @-> path @-> returning bool)
       (fun repo a b ->
@@ -63,6 +83,23 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let a = Root.get a in
         let b = Root.get b in
         Irmin.Type.(unstage (equal Store.hash_t)) a b)
+
+  let () =
+    fn "contents_hash"
+      (repo @-> value @-> returning hash)
+      (fun repo a ->
+        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let a = Root.get a in
+        Root.create (Store.Contents.hash a))
+
+  let () =
+    fn "contents_of_hash"
+      (repo @-> hash @-> returning value)
+      (fun repo a ->
+        let (module Store : Irmin.Generic_key.S), repo = Root.get repo in
+        let a = Root.get a in
+        let c = run @@ Store.Contents.of_hash repo a in
+        match c with Some c -> Root.create c | None -> null)
 
   let () =
     fn "hash_to_string"

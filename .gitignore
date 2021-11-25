@@ -2,6 +2,7 @@ libirmin.so
 libirmin.dylib
 test/test
 tmp*
+test*
 compile_flags.txt
 py/*.c
 py/*.so
@@ -12,3 +13,7 @@ irmin.egg-info
 .eggs
 __pycache__
 py/irmin/irmin.h
+rust/irmin.h
+rust/Cargo.lock
+target
+Cargo.lock

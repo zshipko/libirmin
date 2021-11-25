@@ -27,6 +27,22 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         match commit with Some c -> Root.create c | None -> null)
 
   let () =
+    fn "commit_new"
+      (repo @-> ptr commit @-> int @-> tree @-> info @-> returning commit)
+      (fun repo parents n tree info ->
+        let (module Store : Irmin.Generic_key.S), repo = Root.get repo in
+        let parents =
+          if is_null parents || n = 0 then []
+          else
+            CArray.from_ptr parents n |> CArray.to_list |> List.map Root.get
+            |> List.map Store.Commit.key
+        in
+        let tree = Root.get tree in
+        let info = Root.get info in
+        let commit = run (Store.Commit.v repo ~parents ~info tree) in
+        Root.create commit)
+
+  let () =
     fn "commit_parents_length"
       (repo @-> commit @-> returning int)
       (fun repo commit ->
