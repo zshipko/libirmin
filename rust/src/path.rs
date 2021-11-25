@@ -1,5 +1,6 @@
 use crate::internal::*;
 
+/// Wrapper around String_list Path type
 pub struct Path<'a> {
     pub ptr: *mut IrminPath,
     repo: UntypedRepo<'a>,
@@ -18,6 +19,7 @@ impl<'a> PartialEq for Path<'a> {
 }
 
 impl<'a> Path<'a> {
+    /// Create a path from a string
     pub fn new<T: Contents>(repo: &'a Repo<T>, s: impl AsRef<str>) -> Result<Path, Error> {
         unsafe {
             let s = s.as_ref();
@@ -32,6 +34,7 @@ impl<'a> Path<'a> {
         }
     }
 
+    /// Create a path from a Vec
     pub fn from_vec<T: Contents>(
         repo: &'a Repo<T>,
         s: &Vec<impl AsRef<str>>,
@@ -49,6 +52,7 @@ impl<'a> Path<'a> {
         })
     }
 
+    /// Get path's parent path
     pub fn parent(&self) -> Option<Path<'a>> {
         let ptr = unsafe { irmin_path_parent(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
@@ -60,6 +64,7 @@ impl<'a> Path<'a> {
         })
     }
 
+    /// Append to a path and return a new path
     pub fn append(&self, s: impl AsRef<str>) -> Result<Path<'a>, Error> {
         let s = s.as_ref();
         let ptr = unsafe {
@@ -80,6 +85,7 @@ impl<'a> Path<'a> {
         })
     }
 
+    /// Convert a path to String
     pub fn to_string(&self) -> String {
         let mut len = 0i32;
         let ptr = unsafe { irmin_path_to_string(self.repo.ptr, self.ptr, &mut len) };

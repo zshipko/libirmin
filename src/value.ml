@@ -36,6 +36,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () = fn "value_get_bool" (value @-> returning bool) Root.get
 
+  let () = fn "value_get_float" (value @-> returning float) Root.get
+
   let () =
     fn "value_bytes"
       (ptr char @-> int @-> returning value)

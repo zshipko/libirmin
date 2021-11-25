@@ -48,6 +48,7 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+/// Set internal log level
 pub fn set_log_level(s: Option<&str>) {
     let s = s.map(internal::cstring);
     unsafe {

@@ -1,5 +1,6 @@
 use crate::internal::*;
 
+/// Wrapper around OCaml values
 pub struct Value {
     pub ty: Type,
     pub ptr: *mut IrminValue,
@@ -32,6 +33,7 @@ impl PartialEq for Value {
 }
 
 impl Value {
+    /// OCaml string
     pub fn string(s: impl AsRef<str>) -> Result<Value, Error> {
         let s = s.as_ref();
 
@@ -45,6 +47,7 @@ impl Value {
         Ok(Value { ptr, ty })
     }
 
+    /// OCaml string from Rust &[u8]
     pub fn bytes(s: impl AsRef<[u8]>) -> Result<Value, Error> {
         let s = s.as_ref();
 
@@ -58,6 +61,7 @@ impl Value {
         Ok(Value { ptr, ty })
     }
 
+    /// OCaml int
     pub fn int(i: i32) -> Result<Value, Error> {
         let ptr = unsafe { irmin_value_int(i) };
         if ptr.is_null() {
@@ -69,6 +73,7 @@ impl Value {
         Ok(Value { ptr, ty })
     }
 
+    /// OCaml float
     pub fn float(i: f32) -> Result<Value, Error> {
         let ptr = unsafe { irmin_value_float(i) };
         if ptr.is_null() {
@@ -80,6 +85,19 @@ impl Value {
         Ok(Value { ptr, ty })
     }
 
+    /// OCaml bool
+    pub fn bool(i: bool) -> Result<Value, Error> {
+        let ptr = unsafe { irmin_value_bool(i) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+
+        let ty = Type::bool()?;
+
+        Ok(Value { ptr, ty })
+    }
+
+    /// Parse a value of the specified type from Irmin's string encoding
     pub fn of_string(ty: Type, s: impl AsRef<str>) -> Result<Value, Error> {
         let s = s.as_ref();
 
@@ -91,6 +109,7 @@ impl Value {
         Ok(Value { ptr, ty })
     }
 
+    /// Encode a value using Irmin's string encoding
     pub fn to_string(&self) -> Result<IrminString, Error> {
         let mut len = 0;
         let s = unsafe { irmin_value_to_string(self.ty.ptr, self.ptr, &mut len) };
@@ -101,6 +120,7 @@ impl Value {
         Ok(IrminString(s, len))
     }
 
+    /// Parse a value of the specified type from Irmin's JSON encoding
     pub fn of_json(ty: Type, s: impl AsRef<str>) -> Result<Value, Error> {
         let s = s.as_ref();
 
@@ -112,6 +132,7 @@ impl Value {
         Ok(Value { ptr, ty })
     }
 
+    /// Encode a value using Irmin's JSON encoding
     pub fn to_json(&self) -> Result<IrminString, Error> {
         let mut len = 0;
         let s = unsafe { irmin_value_to_json(self.ty.ptr, self.ptr, &mut len) };
@@ -122,6 +143,7 @@ impl Value {
         Ok(IrminString(s, len))
     }
 
+    /// Parse a value of the specified type from Irmin's binary encoding
     pub fn of_bin(ty: Type, s: impl AsRef<[u8]>) -> Result<Value, Error> {
         let s = s.as_ref();
         let ptr = unsafe { irmin_value_of_bin(ty.ptr, s.as_ptr() as *mut _, s.len() as i32) };
@@ -132,6 +154,7 @@ impl Value {
         Ok(Value { ptr, ty })
     }
 
+    /// Encode a value using Irmin's binary encoding
     pub fn to_bin(&self) -> Result<IrminString, Error> {
         let mut len = 0;
         let s = unsafe { irmin_value_to_bin(self.ty.ptr, self.ptr, &mut len) };
@@ -142,6 +165,7 @@ impl Value {
         Ok(IrminString(s, len))
     }
 
+    /// Get IrminString from string value
     pub fn get_string(&self) -> Result<IrminString, Error> {
         let mut len = 0;
         let s = unsafe { irmin_value_get_string(self.ptr, &mut len) };

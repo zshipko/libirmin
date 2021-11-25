@@ -1,5 +1,6 @@
 use crate::internal::*;
 
+/// Wrapper around Irmin commits
 pub struct Commit<'a> {
     pub ptr: *mut IrminCommit,
     pub(crate) repo: UntypedRepo<'a>,
@@ -18,6 +19,7 @@ impl<'a> PartialEq for Commit<'a> {
 }
 
 impl<'a> Commit<'a> {
+    /// Create a new commit
     pub fn new<T: Contents>(
         repo: &'a Repo<T>,
         parents: impl AsRef<[&'a Commit<'a>]>,
@@ -43,17 +45,19 @@ impl<'a> Commit<'a> {
         })
     }
 
-    pub fn of_hash<T: Contents>(repo: &'a Repo<T>, hash: &Hash) -> Result<Commit<'a>, Error> {
+    /// Find the commit associated with the given hash
+    pub fn of_hash<T: Contents>(repo: &'a Repo<T>, hash: &Hash) -> Option<Commit<'a>> {
         let ptr = unsafe { irmin_commit_of_hash(repo.ptr, hash.ptr) };
         if ptr.is_null() {
-            return Err(Error::NullPtr);
+            return None;
         }
-        Ok(Commit {
+        Some(Commit {
             ptr,
             repo: UntypedRepo::new(repo),
         })
     }
 
+    /// Get the hash associated with a commit
     pub fn hash(&self) -> Result<Hash, Error> {
         let ptr = unsafe { irmin_commit_hash(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
@@ -65,6 +69,7 @@ impl<'a> Commit<'a> {
         })
     }
 
+    /// Get commit info
     pub fn info(&self) -> Result<Info, Error> {
         let ptr = unsafe { irmin_commit_info(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
@@ -76,6 +81,7 @@ impl<'a> Commit<'a> {
         })
     }
 
+    /// Get commit parents
     pub fn parents(&self) -> Vec<Commit> {
         let mut dest = Vec::new();
         let len = unsafe { irmin_commit_parents_length(self.repo.ptr, self.ptr) };

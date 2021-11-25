@@ -1,5 +1,6 @@
 use crate::internal::*;
 
+/// Wrapper around Irmin.config
 pub struct Config<T: Contents> {
     pub ptr: *mut IrminConfig,
     _t: std::marker::PhantomData<T>,
@@ -11,6 +12,7 @@ impl<T: Contents> Drop for Config<T> {
     }
 }
 
+/// Builtin content types
 pub enum ContentType {
     String,
     Json,
@@ -23,6 +25,7 @@ const CONTENTS_JSON: &str = "json\0";
 
 const CONTENTS_JSON_VALUE: &str = "json-value\0";
 
+/// Used to specify the content type of a store
 pub trait Contents
 where
     Self: Sized,
@@ -51,20 +54,40 @@ impl ContentType {
     }
 }
 
+/// Available hash types
 pub enum HashType {
-    Sha1,
     Blake2b,
+    Blake2s,
+    Rmd160,
+    Sha1,
+    Sha224,
+    Sha256,
+    Sha384,
+    Sha512,
 }
 
 const HASH_SHA1: &str = "sha1\0";
+const HASH_SHA224: &str = "sha224\0";
+const HASH_SHA256: &str = "sha256\0";
+const HASH_SHA384: &str = "sha384\0";
+const HASH_SHA512: &str = "sha512\0";
+const HASH_RMD160: &str = "rmd160\0";
 
 const HASH_BLAKE2B: &str = "blake2b\0";
+
+const HASH_BLAKE2S: &str = "blake2s\0";
 
 impl HashType {
     fn ptr(h: Option<HashType>) -> *const u8 {
         match h {
             Some(HashType::Sha1) => HASH_SHA1.as_ptr(),
+            Some(HashType::Sha224) => HASH_SHA224.as_ptr(),
+            Some(HashType::Sha256) => HASH_SHA256.as_ptr(),
+            Some(HashType::Sha384) => HASH_SHA384.as_ptr(),
+            Some(HashType::Sha512) => HASH_SHA512.as_ptr(),
             Some(HashType::Blake2b) => HASH_BLAKE2B.as_ptr(),
+            Some(HashType::Blake2s) => HASH_BLAKE2S.as_ptr(),
+            Some(HashType::Rmd160) => HASH_RMD160.as_ptr(),
             None => std::ptr::null(),
         }
     }
@@ -150,6 +173,7 @@ impl Contents for serde_json::Map<String, serde_json::Value> {
 const ROOT_KEY: &str = "root\0";
 
 impl<T: Contents> Config<T> {
+    /// Create configuration for Irmin_pack store
     pub fn pack(hash: Option<HashType>) -> Result<Config<T>, Error> {
         unsafe {
             let hash = HashType::ptr(hash);
@@ -166,6 +190,7 @@ impl<T: Contents> Config<T> {
         }
     }
 
+    /// Create configuration for Irmin_mem store
     pub fn mem(hash: Option<HashType>) -> Result<Config<T>, Error> {
         unsafe {
             let hash = HashType::ptr(hash);
@@ -182,6 +207,7 @@ impl<T: Contents> Config<T> {
         }
     }
 
+    /// Create configuration for Irmin_fs store
     pub fn fs(hash: Option<HashType>) -> Result<Config<T>, Error> {
         unsafe {
             let hash = HashType::ptr(hash);
@@ -198,6 +224,7 @@ impl<T: Contents> Config<T> {
         }
     }
 
+    /// Create configuration for Irmin_git on-disk store
     pub fn git() -> Result<Config<T>, Error> {
         unsafe {
             let contents = ContentType::ptr(Some(T::content_type()));
@@ -213,6 +240,7 @@ impl<T: Contents> Config<T> {
         }
     }
 
+    /// Create configuration for Irmin_git in-memory store
     pub fn git_mem() -> Result<Config<T>, Error> {
         unsafe {
             let contents = ContentType::ptr(Some(T::content_type()));
@@ -228,12 +256,14 @@ impl<T: Contents> Config<T> {
         }
     }
 
+    /// Set configuration key
     pub fn set(&mut self, key: impl AsRef<str>, ty: &Type, v: &Value) -> Result<bool, Error> {
         let key = cstring(key);
         let x = unsafe { irmin_config_set(self.ptr, key.as_ptr() as *mut _, ty.ptr, v.ptr) };
         Ok(x)
     }
 
+    /// Set root key
     pub fn set_root(&mut self, root: impl AsRef<std::path::Path>) -> Result<bool, Error> {
         let t = Type::string()?;
         let v = Value::string(root.as_ref().to_str().expect("Invalid path"))?;

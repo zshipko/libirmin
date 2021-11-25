@@ -1,3 +1,5 @@
+/// IrminString is a wrapper around strings allocated by libirmin using `malloc` that
+/// should be freed using `free`
 pub struct IrminString(pub *mut std::os::raw::c_char, pub i32);
 
 extern "C" {

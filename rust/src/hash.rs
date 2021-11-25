@@ -1,5 +1,6 @@
 use crate::internal::*;
 
+/// Wrapper around Irmin hash type
 pub struct Hash<'a> {
     pub ptr: *mut IrminHash,
     pub(crate) repo: UntypedRepo<'a>,
@@ -12,6 +13,7 @@ impl<'a> PartialEq for Hash<'a> {
 }
 
 impl<'a> Hash<'a> {
+    /// Convert from string to Hash
     pub fn of_string<T: Contents>(
         repo: &'a Repo<T>,
         s: impl AsRef<str>,
@@ -27,6 +29,7 @@ impl<'a> Hash<'a> {
         })
     }
 
+    /// Convert from Hash to String
     pub fn to_string<T: Contents>(&self) -> String {
         let mut len = 0;
         let s = unsafe { irmin_hash_to_string(self.repo.ptr, self.ptr, &mut len) };
