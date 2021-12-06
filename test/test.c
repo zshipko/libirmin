@@ -2,65 +2,80 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-int main(int argc, char *argv[]) {
-  irmin_log_level("debug");
-  puts("A");
-
-  AUTO IrminConfig *config = irmin_config_git(NULL);
-
-  puts("B");
-
-  AUTO IrminType *ty = irmin_type_string();
-  AUTO IrminValue *root = irmin_value_string("./tmp2", -1);
-
-  assert(irmin_config_set(config, "root", ty, root));
-
-  puts("C");
-
-  AUTO IrminRepo *repo = irmin_repo_new(config);
-
-  puts("D");
-
-  AUTO Irmin *store = irmin_main(repo);
-
-  char *x = "123";
-  AUTO IrminValue *a = irmin_value_string(x, -1);
-
-  char *k[] = {"a", "b", "c", NULL};
-  AUTO IrminPath *path = irmin_path(repo, k);
-  AUTO IrminInfo *info = irmin_info_new(repo, "testing", NULL);
-  assert(irmin_set(store, path, a, info));
-  assert(irmin_mem(store, path));
-
+void test_irmin_value_json() {
   AUTO IrminType *json = irmin_type_json();
   IrminValue *j1 = irmin_value_of_string(json, "{\"a\": 1}", -1);
   assert(j1 != NULL);
   irmin_value_free(j1);
+}
 
-  char *s = irmin_value_get_string(irmin_find(store, path), NULL);
-  puts(s);
+void test_irmin_store() {
+  // Setup config for git store
+  AUTO IrminConfig *config = irmin_config_git(NULL);
+
+  // Set root key
+  AUTO IrminValue *root = irmin_value_string("./tmp2", -1);
+  AUTO IrminType *ty = irmin_type_string();
+  assert(irmin_config_set(config, "root", ty, root));
+
+  // Initialize repo and store
+  AUTO IrminRepo *repo = irmin_repo_new(config);
+  AUTO Irmin *store = irmin_main(repo);
+
+  // Create new string value
+  char *x = "123";
+  AUTO IrminValue *a = irmin_value_string(x, -1);
+
+  // Create path: a/b/c
+  char *k[] = {"a", "b", "c", NULL};
+  AUTO IrminPath *path = irmin_path(repo, k);
+
+  // Create commit info
+  AUTO IrminInfo *info = irmin_info_new(repo, "test", "set");
+
+  // Set a/b/c to "123"
+  assert(irmin_set(store, path, a, info));
+  assert(irmin_mem(store, path));
+
+  // Get a/b/c from store
+  AUTO IrminValue *v = irmin_find(store, path);
+  assert(v);
+
+  // Get string representation
+  uint64_t length = 0;
+  char *s = irmin_value_get_string(v, &length);
+  assert(strncmp(s, x, length) == 0);
   free(s);
 
-  puts("TREE");
-
+  // Check that tree exists at a/b
   AUTO IrminPath *path1 = irmin_path_of_string(repo, "a/b", -1);
   assert(irmin_mem_tree(store, path1));
+
+  // Get tree at a/b
   AUTO IrminTree *t = irmin_find_tree(store, path1);
 
-  puts("TREE1");
-
+  // Set d to "456"
   AUTO IrminPath *path2 = irmin_path_of_string(repo, "d", 1);
-
   AUTO IrminValue *b = irmin_value_string("456", -1);
   irmin_tree_add(repo, t, path2, b);
+  assert(irmin_tree_mem(repo, t, path2));
 
-  AUTO IrminInfo *info1 = irmin_info_new(repo, "tree", NULL);
+  // Commit updated tree
+  AUTO IrminInfo *info1 = irmin_info_new(repo, "test", "tree");
   irmin_set_tree(store, path1, t, info1);
 
-  puts("TREE3");
+  // Ensure the store contains a/b/d
   AUTO IrminPath *path3 = irmin_path_of_string(repo, "a/b/d", -1);
   assert(irmin_mem(store, path3));
+}
+
+int main(int argc, char *argv[]) {
+  irmin_log_level("debug");
+
+  test_irmin_value_json();
+  test_irmin_store();
 
   return 0;
 }

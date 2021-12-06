@@ -64,13 +64,8 @@ mod tests {
     use crate::*;
     #[test]
     fn it_works() -> Result<(), Error> {
-        println!("A");
         let config = Config::<serde_json::Value>::git_mem()?;
-
-        println!("B");
         let repo = Repo::new(config)?;
-
-        println!("C");
         let mut store = Store::new(&repo)?;
 
         let info = Info::new(&repo, "irmin", "set")?;

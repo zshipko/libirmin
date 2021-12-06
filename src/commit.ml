@@ -28,8 +28,9 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "commit_new"
-      (repo @-> ptr commit @-> int @-> tree @-> info @-> returning commit)
+      (repo @-> ptr commit @-> uint64_t @-> tree @-> info @-> returning commit)
       (fun repo parents n tree info ->
+        let n = UInt64.to_int n in
         let (module Store : Irmin.Generic_key.S), repo = Root.get repo in
         let parents =
           if is_null parents || n = 0 then []
@@ -44,17 +45,18 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "commit_parents_length"
-      (repo @-> commit @-> returning int)
+      (repo @-> commit @-> returning uint64_t)
       (fun repo commit ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let commit = Root.get commit in
         let parents = Store.Commit.parents commit in
-        List.length parents)
+        List.length parents |> UInt64.of_int)
 
   let () =
     fn "commit_parent"
-      (repo @-> commit @-> int @-> returning commit)
+      (repo @-> commit @-> uint64_t @-> returning commit)
       (fun repo commit i ->
+        let i = UInt64.to_int i in
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let commit = Root.get commit in
         let parents = Store.Commit.parents commit in

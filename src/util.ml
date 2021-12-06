@@ -1,6 +1,7 @@
 module Make (I : Cstubs_inverted.INTERNAL) = struct
   include Ctypes
   include Types
+  include Unsigned
 
   let find_config_key config name =
     Irmin.Backend.Conf.Spec.find_key (Irmin.Backend.Conf.spec config) name
@@ -10,8 +11,16 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
   let free store = if not (is_null store) then Root.release store
 
   let strlen ptr =
-    let rec loop i = if !@(ptr +@ i) = char_of_int 0 then i else loop (i + 1) in
-    loop 0
+    if is_null ptr then 0
+    else
+      let rec loop i =
+        if !@(ptr +@ i) = char_of_int 0 then i else loop (i + 1)
+      in
+      loop 0
+
+  let get_length length s =
+    let length = Int64.to_int length in
+    if length < 0 then strlen s else length
 
   let malloc t n =
     coerce (ptr void) (ptr t)

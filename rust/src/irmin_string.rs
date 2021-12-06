@@ -1,6 +1,6 @@
 /// IrminString is a wrapper around strings allocated by libirmin using `malloc` that
 /// should be freed using `free`
-pub struct IrminString(pub *mut std::os::raw::c_char, pub i32);
+pub struct IrminString(pub *mut std::os::raw::c_char, pub usize);
 
 extern "C" {
     fn free(_: *mut std::ffi::c_void);
@@ -30,14 +30,14 @@ impl PartialEq for IrminString {
 
 impl AsRef<[u8]> for IrminString {
     fn as_ref(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts_mut(self.0 as *mut u8, self.1 as usize) }
+        unsafe { std::slice::from_raw_parts_mut(self.0 as *mut u8, self.1) }
     }
 }
 
 impl AsRef<str> for IrminString {
     fn as_ref(&self) -> &str {
         unsafe {
-            let s = std::slice::from_raw_parts_mut(self.0 as *mut u8, self.1 as usize);
+            let s = std::slice::from_raw_parts_mut(self.0 as *mut u8, self.1);
             std::str::from_utf8_unchecked(s)
         }
     }
@@ -46,7 +46,7 @@ impl AsRef<str> for IrminString {
 impl AsRef<std::ffi::CStr> for IrminString {
     fn as_ref(&self) -> &std::ffi::CStr {
         unsafe {
-            let b = std::slice::from_raw_parts_mut(self.0 as *mut u8, self.1 as usize + 1);
+            let b = std::slice::from_raw_parts_mut(self.0 as *mut u8, self.1 + 1);
             std::ffi::CStr::from_bytes_with_nul_unchecked(b)
         }
     }

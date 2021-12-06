@@ -116,6 +116,6 @@ impl Type {
         if name.is_null() {
             return Err(Error::NullPtr);
         }
-        Ok(IrminString(name, len))
+        Ok(IrminString(name, len as usize))
     }
 }

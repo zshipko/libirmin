@@ -44,7 +44,7 @@ impl<'a> Info<'a> {
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
-        Ok(IrminString(ptr, len))
+        Ok(IrminString(ptr, len as usize))
     }
 
     /// Get message
@@ -54,7 +54,7 @@ impl<'a> Info<'a> {
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
-        Ok(IrminString(ptr, len))
+        Ok(IrminString(ptr, len as usize))
     }
 }
 
