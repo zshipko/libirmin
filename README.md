@@ -28,7 +28,7 @@ $ make test-python   # Python tests only
 $ make test-all      # Run all tests
 ```
 
-Note: `py.test` is required to run the python tests: `pip3 install pytest --user`
+`py.test` is required to run the python tests: `pip3 install pytest --user`
 
 ## Rust bindings
 
@@ -38,7 +38,7 @@ Rust bindings exist in the `rust` directory, to use them in your project add the
 irmin = {git = "https://github.com/zshipko/libirmin"}
 ```
 
-NOTE: `libirmin.so` should be available somewhere in your `LD_LIBRARY_PATH` to ensure it's linked correctly
+**Note**: `libirmin.so` should be available somewhere in your `LD_LIBRARY_PATH` to ensure it's linked correctly
 
 ## Python bindings
 
