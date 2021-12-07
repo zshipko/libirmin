@@ -20,7 +20,7 @@ impl<'a> PartialEq for Path<'a> {
 
 impl<'a> Path<'a> {
     /// Create a path from a string
-    pub fn new<T: Contents>(repo: &'a Repo<T>, s: impl AsRef<str>) -> Result<Path, Error> {
+    pub fn from_str<T: Contents>(repo: &'a Repo<T>, s: impl AsRef<str>) -> Result<Path, Error> {
         unsafe {
             let s = s.as_ref();
             let ptr = irmin_path_of_string(repo.ptr, s.as_ptr() as *mut _, s.len() as i64);
@@ -34,11 +34,8 @@ impl<'a> Path<'a> {
         }
     }
 
-    /// Create a path from a Vec
-    pub fn from_vec<T: Contents>(
-        repo: &'a Repo<T>,
-        s: &Vec<impl AsRef<str>>,
-    ) -> Result<Path<'a>, Error> {
+    /// Create a path from a slice
+    pub fn new<T: Contents>(repo: &'a Repo<T>, s: &[impl AsRef<str>]) -> Result<Path<'a>, Error> {
         let s: Vec<_> = s.iter().map(cstring).collect();
         let mut t: Vec<_> = s.iter().map(|x| x.as_ptr() as *mut u8).collect();
         t.push(std::ptr::null_mut());

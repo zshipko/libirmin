@@ -63,13 +63,13 @@ pub fn set_log_level(s: Option<&str>) {
 mod tests {
     use crate::*;
     #[test]
-    fn it_works() -> Result<(), Error> {
+    fn test_store() -> Result<(), Error> {
         let config = Config::<serde_json::Value>::git_mem()?;
         let repo = Repo::new(config)?;
         let mut store = Store::new(&repo)?;
 
         let info = Info::new(&repo, "irmin", "set")?;
-        let path = Path::new(&repo, "foo/bar")?;
+        let path = Path::from_str(&repo, "foo/bar")?;
         let value = serde_json::json!({
             "a": 1,
             "b": 2,
@@ -86,9 +86,26 @@ mod tests {
         let x = store.find_tree(&path1)?;
         assert!(x.is_some());
 
-        let path2 = Path::from_vec(&repo, &vec!["bar"])?;
+        let path2 = Path::new(&repo, &["bar"])?;
         let y = x.unwrap().find(&path2)?;
         assert!(y.unwrap() == value);
+        Ok(())
+    }
+
+    #[test]
+    fn test_tree() -> Result<(), Error> {
+        let config = Config::<String>::git_mem()?;
+        let repo = Repo::new(config)?;
+
+        let mut tree = Tree::new(&repo)?;
+        let abc = Path::new(&repo, &["a", "b", "c"])?;
+        let ab = Path::new(&repo, &["a", "b"])?;
+
+        let v = String::from("123");
+        tree.add(&abc, &v)?;
+        assert!(tree.mem(&abc));
+        assert!(tree.mem_tree(&ab));
+
         Ok(())
     }
 }

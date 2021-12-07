@@ -18,16 +18,6 @@ impl<T: Contents> Repo<T> {
             Ok(Repo { config, ptr })
         }
     }
-
-    /// Create a new path
-    pub fn path(&self, s: impl AsRef<str>) -> Result<Path, Error> {
-        Path::new(self, s)
-    }
-
-    /// Create a new, empty tree
-    pub fn tree(&self) -> Result<Tree<T>, Error> {
-        Tree::new(self)
-    }
 }
 
 impl<T: Contents> Drop for Repo<T> {

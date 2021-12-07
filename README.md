@@ -9,6 +9,28 @@ See [irmin.h](https://github.com/zshipko/libirmin/blob/main/include/irmin.h) for
 NOTE: All strings returned from `libirmin` should be released using `free`, but `Irmin*` types should be released using the
 corresponding `irmin_*_free` function.
 
+### Compiling
+
+To compile `irmin.h` and `libirmin.so`, run:
+
+```
+$ make
+```
+
+After that completes `irmin.h` can be found in `include/` and `libirmin.so` will be in `lib/`
+
+### Running tests
+
+```
+$ make test          # C tests only
+$ make test-rust     # Rust tests only
+$ make test-python   # Python tests only
+$ make test-all      # Run all tests
+```
+
+Note: `py.test` is required to run the python tests: `pip3 install pytest --user`
+
+All tets
 ## Rust bindings
 
 Rust bindings exist in the `rust` directory, to use them in your project add the following to your `Cargo.toml` file:
