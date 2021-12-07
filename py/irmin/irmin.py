@@ -210,7 +210,7 @@ class Value:
         '''
         Get Python bytes from string value
         '''
-        n = ffi.new("int[1]", [0])
+        n = ffi.new("uint64_t[1]", [0])
         s = lib.irmin_value_get_string(self._value, n)
         st = ffi.string(s, n[0])
         lib.free(s)
@@ -220,7 +220,7 @@ class Value:
         '''
         Encode a value using Irmin's binary encoding
         '''
-        n = ffi.new("int[1]", [0])
+        n = ffi.new("uint64_t[1]", [0])
         s = lib.irmin_value_to_bin(self.type._type, self._value, n)
         st = ffi.string(s, n[0])
         lib.free(s)
@@ -255,7 +255,7 @@ class Value:
         '''
         Same as to_string but returns Python bytes
         '''
-        n = ffi.new("int[1]", [0])
+        n = ffi.new("uint64_t[1]", [0])
         s = lib.irmin_value_to_string(self.type._type, self._value, n)
         st = ffi.string(s, n[0])
         lib.free(s)
@@ -275,7 +275,7 @@ class Value:
         '''
         Encode a value using Irmin's JSON encoding
         '''
-        n = ffi.new("int[1]", [0])
+        n = ffi.new("uint64_t[1]", [0])
         s = lib.irmin_value_to_json(self.type._type, self._value, n)
         st = ffi.string(s, n[0])
         lib.free(s)
@@ -495,7 +495,7 @@ class Hash:
         return lib.irmin_hash_equal(self.repo._repo, self._hash, other._hash)
 
     def __bytes__(self):
-        n = ffi.new("int[1]", [0])
+        n = ffi.new("uint64_t[1]", [0])
         s = lib.irmin_hash_to_string(self.repo._repo, self._hash, n)
         st = ffi.string(s, n[0])
         lib.free(s)

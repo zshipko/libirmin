@@ -19,7 +19,7 @@ impl<'a> Hash<'a> {
         s: impl AsRef<str>,
     ) -> Result<Hash<'a>, Error> {
         let s = s.as_ref();
-        let ptr = unsafe { irmin_hash_of_string(repo.ptr, s.as_ptr() as *mut _, s.len() as i32) };
+        let ptr = unsafe { irmin_hash_of_string(repo.ptr, s.as_ptr() as *mut _, s.len() as i64) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
@@ -36,7 +36,7 @@ impl<'a> Hash<'a> {
         if s.is_null() {
             return String::new();
         }
-        IrminString(s, len).into()
+        IrminString(s, len as usize).into()
     }
 }
 

@@ -23,10 +23,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "path_of_string"
-      (repo @-> ptr char @-> int @-> returning path)
+      (repo @-> ptr char @-> int64_t @-> returning path)
       (fun repo s length ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
-        let length = if length < 0 then strlen s else length in
+        let length = get_length length s in
         let s = string_from_ptr s ~length in
         match Irmin.Type.of_string Store.Path.t s with
         | Ok p -> Root.create p
@@ -34,12 +34,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "path_to_string"
-      (repo @-> path @-> ptr int @-> returning (ptr char))
+      (repo @-> path @-> ptr uint64_t @-> returning (ptr char))
       (fun repo p l ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let path = Root.get p in
         let s = Irmin.Type.to_string Store.Path.t path in
-        if not (is_null l) then l <-@ String.length s;
+        if not (is_null l) then l <-@ UInt64.of_int @@ String.length s;
         malloc_string s)
 
   let () =
@@ -53,11 +53,11 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "path_append"
-      (repo @-> path @-> ptr char @-> int @-> returning path)
+      (repo @-> path @-> ptr char @-> int64_t @-> returning path)
       (fun repo p s length ->
+        let length = get_length length s in
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let path = Root.get p in
-        let length = if length < 0 then strlen s else length in
         let s = string_from_ptr s ~length in
         let s = Irmin.Type.of_string Store.step_t s |> Result.get_ok in
         Root.create (Store.Path.rcons path s))
@@ -103,18 +103,19 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "hash_to_string"
-      (repo @-> hash @-> ptr int @-> returning (ptr char))
+      (repo @-> hash @-> ptr uint64_t @-> returning (ptr char))
       (fun repo hash l ->
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let hash = Root.get hash in
         let s = Irmin.Type.to_string Store.hash_t hash in
-        if not (is_null l) then l <-@ String.length s;
+        if not (is_null l) then l <-@ UInt64.of_int @@ String.length s;
         malloc_string s)
 
   let () =
     fn "hash_of_string"
-      (repo @-> ptr char @-> int @-> returning hash)
+      (repo @-> ptr char @-> int64_t @-> returning hash)
       (fun repo s length ->
+        let length = get_length length s in
         let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
         let s = string_from_ptr s ~length in
         let hash = Irmin.Type.of_string Store.Hash.t s in

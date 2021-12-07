@@ -31,7 +31,7 @@ impl<'a> Commit<'a> {
             irmin_commit_new(
                 repo.ptr,
                 parents.as_ptr() as *mut _,
-                parents.len() as i32,
+                parents.len() as u64,
                 tree.ptr,
                 info.ptr,
             )

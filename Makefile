@@ -29,7 +29,12 @@ uninstall:
 test-rust: build
 	cargo test -- --test-threads=1
 
+test-python: build
+	py.test py/test.py
+
 .PHONY: test
 test: build
 	$(CC) -o test/test test/test.c -I . -L lib -lirmin -g
 	LD_LIBRARY_PATH=lib DYLD_FALLBACK_LIBRARY_PATH=lib ./test/test
+
+test-all: test test-rust test-python
