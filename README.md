@@ -30,7 +30,6 @@ $ make test-all      # Run all tests
 
 Note: `py.test` is required to run the python tests: `pip3 install pytest --user`
 
-All tets
 ## Rust bindings
 
 Rust bindings exist in the `rust` directory, to use them in your project add the following to your `Cargo.toml` file:
