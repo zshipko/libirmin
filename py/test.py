@@ -30,16 +30,16 @@ def test_irmin_value():
 
 def test_irmin_head():
     repo, store = init()
-    store["test", "a"] = {"x": "cool"}
+    store["test", "a"] = {"x": "foo"}
     c = store.head
-    store["test", "a"] = {"x": "ok"}
+    store["test", "a"] = {"x": "bar"}
     d = store.head
     if d is not None:
-        print(d.parents)
-    print(store["test", "a"])
+        assert (d.parents[0].hash == c.hash)
+    assert (store["test", "a"] == {"x": "bar"})
     if c is not None:
         store.set_head(c)
-    print(store["test", "a"])
+    assert (store["test", "a"] == {"x": "foo"})
     head = store.head
     if head is not None:
         assert (head.hash == c.hash)

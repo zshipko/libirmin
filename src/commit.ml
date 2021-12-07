@@ -57,10 +57,13 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (repo @-> commit @-> uint64_t @-> returning commit)
       (fun repo commit i ->
         let i = UInt64.to_int i in
-        let (module Store : Irmin.Generic_key.S), _ = Root.get repo in
+        let (module Store : Irmin.Generic_key.S), repo = Root.get repo in
         let commit = Root.get commit in
         let parents = Store.Commit.parents commit in
-        try List.nth parents i |> Root.create with _ -> null)
+        try
+          run (List.nth parents i |> Store.Commit.of_key repo)
+          |> Option.get |> Root.create
+        with _ -> null)
 
   let () =
     fn "commit_equal"

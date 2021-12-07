@@ -616,10 +616,10 @@ class Commit:
         '''
         n = lib.irmin_commit_parents_length(self.repo._repo, self._commit)
         d = [
-            Commit(self.repo,
-                   lib.irmin_commit_parent(self.repo._repo, self._commit, i))
+            lib.irmin_commit_parent(self.repo._repo, self._commit, i)
             for i in range(n)
         ]
+        d = [Commit(self.repo, x) for x in d if x != ffi.NULL]
         return d
 
     def __del__(self):

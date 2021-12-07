@@ -26,6 +26,7 @@ fn main() {
         .header(&header)
         .allowlist_type("Irmin.*")
         .allowlist_function("irmin.*")
+        .allowlist_function("caml.*")
         .generate()
         .unwrap();
 
