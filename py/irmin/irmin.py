@@ -362,6 +362,13 @@ class Config:
         lib.irmin_config_free(self._config)
 
     @staticmethod
+    def tezos():
+        '''
+        Configure a tezos context store
+        '''
+        return Config(lib.irmin_config_tezos(), contents="string")
+
+    @staticmethod
     def git(contents="string"):
         '''
         Configure an on-disk git store

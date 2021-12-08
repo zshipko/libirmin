@@ -172,6 +172,23 @@ impl Contents for serde_json::Map<String, serde_json::Value> {
 
 const ROOT_KEY: &str = "root\0";
 
+impl Config<IrminString> {
+    /// Create configuration for Tezos context store
+    pub fn tezos() -> Result<Config<IrminString>, Error> {
+        unsafe {
+            let ptr = irmin_config_tezos();
+            if ptr.is_null() {
+                return Err(Error::NullPtr);
+            }
+
+            Ok(Config {
+                ptr,
+                _t: std::marker::PhantomData,
+            })
+        }
+    }
+}
+
 impl<T: Contents> Config<T> {
     /// Create configuration for Irmin_pack store
     pub fn pack(hash: Option<HashType>) -> Result<Config<T>, Error> {
