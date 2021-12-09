@@ -14,14 +14,13 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "info_update"
-      (repo @-> string @-> string_opt @-> info @-> returning info)
-      (fun (type repo) repo message author info ->
+      (repo @-> info @-> string_opt @-> string @-> returning void)
+      (fun (type repo) repo info author message ->
         let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
           Root.get_repo repo
         in
         let module Info = Irmin_unix.Info (Store.Info) in
-        Root.set_info (module Store) info (Info.v ?author "%s" message ());
-        info)
+        Root.set_info (module Store) info (Info.v ?author "%s" message ()))
 
   let () =
     fn "info_message"

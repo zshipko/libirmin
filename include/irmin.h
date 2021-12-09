@@ -73,8 +73,8 @@ int irmin_value_compare(IrminType* x1178, IrminValue* x1177,
                         IrminValue* x1176);
 void irmin_value_free(IrminValue* x1179);
 IrminInfo* irmin_info_new(IrminRepo* x1182, char* x1181, char* x1180);
-IrminInfo* irmin_info_update(IrminRepo* x1186, char* x1185, char* x1184,
-                             IrminInfo* x1183);
+void irmin_info_update(IrminRepo* x1186, IrminInfo* x1185, char* x1184,
+                       char* x1183);
 char* irmin_info_message(IrminRepo* x1189, IrminInfo* x1188, uint64_t* x1187);
 char* irmin_info_author(IrminRepo* x1192, IrminInfo* x1191, uint64_t* x1190);
 int64_t irmin_info_date(IrminRepo* x1194, IrminInfo* x1193);
