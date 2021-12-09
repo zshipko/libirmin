@@ -16,18 +16,16 @@ void test_irmin_store() {
   AUTO IrminConfig *config = irmin_config_git(NULL);
 
   // Set root key
-  AUTO IrminString *tmp = irmin_string_new("./tmp2", -1);
-  AUTO IrminValue *root = irmin_value_make(tmp);
+  AUTO IrminString *root = irmin_string_new("./tmp2", -1);
   AUTO IrminType *ty = irmin_type_string();
-  assert(irmin_config_set(config, "root", ty, root));
+  assert(irmin_config_set(config, "root", ty, (IrminValue *)root));
 
   // Initialize repo and store
   AUTO IrminRepo *repo = irmin_repo_new(config);
   AUTO Irmin *store = irmin_main(repo);
 
   // Create new string value
-  AUTO IrminString *x = irmin_string_new("123", 3);
-  AUTO IrminValue *a = irmin_value_make(x);
+  AUTO IrminString *a = irmin_string_new("123", 3);
 
   // Create path: a/b/c
   char *k[] = {"a", "b", "c", NULL};
@@ -37,18 +35,16 @@ void test_irmin_store() {
   AUTO IrminInfo *info = irmin_info_new(repo, "test", "set");
 
   // Set a/b/c to "123"
-  assert(irmin_set(store, path, a, info));
+  assert(irmin_set(store, path, (IrminValue *)a, info));
   assert(irmin_mem(store, path));
 
   // Get a/b/c from store
-  AUTO IrminValue *v = irmin_find(store, path);
+  AUTO IrminString *v = (IrminString *)irmin_find(store, path);
   assert(v);
 
   // Get string representation
-  IrminString *s = irmin_value_get_string(v);
-  uint64_t length = irmin_string_length(s);
-  assert(strncmp(irmin_string_data(s), irmin_string_data(x), length) == 0);
-  free(s);
+  uint64_t length = irmin_string_length(v);
+  assert(strncmp(irmin_string_data(v), irmin_string_data(a), length) == 0);
 
   // Check that tree exists at a/b
   AUTO IrminPath *path1 = irmin_path_of_string(repo, "a/b", -1);
@@ -59,9 +55,8 @@ void test_irmin_store() {
 
   // Set d to "456"
   AUTO IrminPath *path2 = irmin_path_of_string(repo, "d", 1);
-  AUTO IrminString *bs = irmin_string_new("456", -1);
-  AUTO IrminValue *b = irmin_value_make(bs);
-  irmin_tree_add(repo, t, path2, b);
+  AUTO IrminString *b = irmin_string_new("456", -1);
+  irmin_tree_add(repo, t, path2, (IrminValue *)b);
   assert(irmin_tree_mem(repo, t, path2));
 
   // Commit updated tree

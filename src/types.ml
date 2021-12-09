@@ -27,7 +27,3 @@ let hash = ptr (typedef void "IrminHash")
 let info = ptr (typedef void "IrminInfo")
 
 let irmin_string = ptr (typedef void "IrminString")
-
-let irmin_list = ptr (typedef void "IrminList")
-
-let irmin_array = ptr (typedef void "IrminArray")

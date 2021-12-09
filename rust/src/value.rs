@@ -14,7 +14,7 @@ impl Drop for Value {
 
 impl Clone for Value {
     fn clone(&self) -> Value {
-        let ptr = unsafe { irmin_value_make(self.ptr as *mut _) };
+        let ptr = unsafe { irmin_value_clone(self.ptr as *mut _) };
         Value {
             ty: self.ty.clone(),
             ptr,
@@ -36,8 +36,8 @@ impl Value {
     /// OCaml string
     pub fn string(s: impl AsRef<str>) -> Result<Value, Error> {
         let s = s.as_ref();
-        let s = IrminString::new(s)?;
-        let ptr = unsafe { irmin_value_make(s.0 as *mut _) };
+        let ptr =
+            unsafe { irmin_string_new(s.as_ptr() as *mut _, s.len() as i64) as *mut IrminValue };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
@@ -50,8 +50,8 @@ impl Value {
     /// OCaml string from Rust &[u8]
     pub fn bytes(s: impl AsRef<[u8]>) -> Result<Value, Error> {
         let s = s.as_ref();
-        let s = IrminString::new(s)?;
-        let ptr = unsafe { irmin_value_make(s.0 as *mut _) };
+        let ptr =
+            unsafe { irmin_string_new(s.as_ptr() as *mut _, s.len() as i64) as *mut IrminValue };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }

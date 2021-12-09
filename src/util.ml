@@ -132,17 +132,5 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     let set_string ptr (x : string) : unit = Root.set ptr x
 
     let create_string (s : string) = Root.create s
-
-    let get_list x : 'a list = Root.get x
-
-    let set_list ptr (x : 'a list) : unit = Root.set ptr x
-
-    let create_list (s : 'a list) = Root.create s
-
-    let get_array x : 'a array = Root.get x
-
-    let set_array ptr (x : 'a array) : unit = Root.set ptr x
-
-    let create_array (s : 'a array) = Root.create s
   end
 end

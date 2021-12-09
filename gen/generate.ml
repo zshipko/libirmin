@@ -44,8 +44,6 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
       "IrminInfo";
       "IrminHash";
       "IrminString";
-      "IrminList";
-      "IrminArray";
     ];
     writeln h_fd "void caml_startup(char *argv[]);";
     writeln h_fd "void caml_shutdown();";

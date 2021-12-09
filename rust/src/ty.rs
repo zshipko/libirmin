@@ -7,7 +7,7 @@ pub struct Type {
 
 impl Clone for Type {
     fn clone(&self) -> Type {
-        let ptr = unsafe { irmin_value_make(self.ptr as *mut _) as *mut IrminType };
+        let ptr = unsafe { irmin_value_clone(self.ptr as *mut _) as *mut IrminType };
         Type { ptr }
     }
 }

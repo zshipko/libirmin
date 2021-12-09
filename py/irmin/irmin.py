@@ -17,7 +17,9 @@ class String:
             self._str = ptr
 
     def __len__(self):
-        return lib.irmin_string_length(self._str)
+        s = lib.irmin_string_data(self._str)
+        s = ffi.string(s)
+        return bytes.decode(s)
 
     def __bytes__(self):
         s = lib.irmin_string_data(self._str)
@@ -124,7 +126,8 @@ class Type:
         Type name
         '''
         s = lib.irmin_type_name(self._type)
-        return String(s).__str__()
+        s = String(s)
+        return s.__str__()
 
     def __str__(self):
         return self.name()
@@ -155,7 +158,7 @@ class Value:
     @staticmethod
     def make(ty: Type, x):
         x = ffi.cast("void*", x)
-        x = lib.irmin_value_make(x)
+        x = lib.irmin_value_clone(x)
         return Value(x, ty)
 
     @staticmethod
@@ -192,7 +195,7 @@ class Value:
         string value
         '''
         x = String(s)
-        return Value(lib.irmin_value_make(x._str), Type.string())
+        return Value(lib.irmin_value_string(x._str), Type.string())
 
     @staticmethod
     def bytes(b: bytes) -> 'Value':
@@ -200,7 +203,7 @@ class Value:
         string value from Python bytes
         '''
         x = String(b)
-        return Value(lib.irmin_value_make(x._str), Type.string())
+        return Value(lib.irmin_value_string(x._str), Type.string())
 
     @staticmethod
     def json(d: dict) -> Optional['Value']:
@@ -227,14 +230,15 @@ class Value:
         '''
         Get string from string value
         '''
-        return bytes.decode(self.get_bytes())
+        s = lib.irmin_value_get_string(self._value)
+        return String(s).__str__()
 
     def get_bytes(self):
         '''
         Get Python bytes from string value
         '''
         s = lib.irmin_value_get_string(self._value)
-        return String(s)
+        return String(s).__bytes__()
 
     def to_bin(self):
         '''
@@ -312,7 +316,7 @@ class Value:
         return self.get_bytes()
 
     def __str__(self):
-        return bytes.decode(self.__bytes__())
+        return self.get_string()
 
     def __del__(self):
         lib.irmin_value_free(self._value)
@@ -602,10 +606,11 @@ class Commit:
         '''
         Create a new commit
         '''
-        n = len(parents)
-        a = [ffi.new("IrminCommit*", arg._commit) for arg in parents]
-        b = ffi.new("IrminCommit*[]", a)
-        c = lib.irmin_commit_new(repo._repo, b, n, tree._tree, info._info)
+        a = lib.irmin_list_new()
+        for p in parents:
+            lib.irmin_list_add(a, ffi.cast("IrminValue*", p._commit))
+        c = lib.irmin_commit_new(repo._repo, a, tree._tree, info._info)
+        lib.irmin_list_free(a)
         if c == ffi.NULL:
             return None
         return Commit(repo, c)

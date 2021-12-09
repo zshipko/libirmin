@@ -55,25 +55,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create_commit (module Store) commit)
 
   let () =
-    fn "commit_parents"
-      (repo @-> commit @-> returning irmin_list)
-      (fun (type repo) repo commit ->
-        let (module Store : Irmin.Generic_key.S with type repo = repo), repo =
-          Root.get_repo repo
-        in
-        let commit = Root.get_commit (module Store) commit in
-        let parents = Store.Commit.parents commit in
-        let open Lwt.Infix in
-        try
-          Lwt_list.map_s
-            (fun x ->
-              Store.Commit.of_key repo x >|= fun c ->
-              Option.get c |> Root.create_commit (module Store))
-            parents
-          |> run |> Root.create_list
-        with _ -> null)
-
-  let () =
     fn "commit_parents_length"
       (repo @-> commit @-> returning uint64_t)
       (fun (type repo) repo commit ->

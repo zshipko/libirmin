@@ -16,11 +16,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "value_bool" (bool @-> returning value) (fun b -> Root.create_value b)
 
   let () =
-    fn "value_make"
-      (ptr void @-> returning value)
-      (fun a ->
-        let a = Root.get_value a in
-        Root.create_value a)
+    fn "value_clone" (value @-> returning value) (fun x -> Root.create_value x)
+
+  let () =
+    fn "value_string"
+      (irmin_string @-> returning value)
+      (fun x -> Root.create_value (Root.get_string x))
 
   let () =
     fn "value_get_string"
@@ -46,51 +47,57 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create_value (Bytes.of_string (string_from_ptr s ~length)))
 
   let () =
-    fn "list_new" (void @-> returning value) (fun () -> Root.create_list [])
-
-  let () = fn "list_free" (irmin_list @-> returning void) free
+    fn "value_list_new"
+      (void @-> returning value)
+      (fun () -> Root.create_value [])
 
   let () =
-    fn "list_add"
+    fn "value_list_add"
       (value @-> value @-> returning void)
       (fun (type a) list x ->
-        let tl : a list = Root.get_value list in
-        let hd : a = Root.get_value x in
-        Root.set_value list (hd :: tl))
+        let a : a list = Root.get_value list in
+        let b : a = Root.get_value x in
+        Root.set_value list (a @ [ b ]))
 
   let () =
-    fn "list_hd"
+    fn "value_list_hd"
       (value @-> returning value)
       (fun list ->
         let list = Root.get_value list in
         match list with [] -> null | list -> Root.create_value (List.hd list))
 
   let () =
-    fn "list_tl"
+    fn "value_list_tl"
       (value @-> returning value)
       (fun list ->
         let list = Root.get_value list in
         Root.create_value (List.tl list))
 
   let () =
-    fn "list_length"
-      (irmin_list @-> returning uint64_t)
+    fn "value_list_get"
+      (value @-> uint64_t @-> returning value)
+      (fun (type a) arr i ->
+        let i = UInt64.to_int i in
+        let x : a list = Root.get_value arr in
+        Root.create_value (List.nth x i))
+
+  let () =
+    fn "value_list_length"
+      (value @-> returning uint64_t)
       (fun (type a) x ->
-        let x : a list = Root.get_list x in
+        let x : a list = Root.get_value x in
         List.length x |> UInt64.of_int)
 
   let () =
-    fn "array_new"
-      (uint64_t @-> value @-> returning irmin_array)
+    fn "value_array_new"
+      (uint64_t @-> value @-> returning value)
       (fun i x ->
         let x = Root.get_value x in
         Root.create_value (Array.make (UInt64.to_int i) x))
 
-  let () = fn "array_free" (irmin_array @-> returning void) free
-
   let () =
-    fn "array_set"
-      (irmin_array @-> uint64_t @-> value @-> returning void)
+    fn "value_array_set"
+      (value @-> uint64_t @-> value @-> returning void)
       (fun (type a) arr i x ->
         let i = UInt64.to_int i in
         let arr : a array = Root.get_value arr in
@@ -98,33 +105,19 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         arr.(i) <- x)
 
   let () =
-    fn "array_get"
-      (irmin_array @-> uint64_t @-> returning value)
+    fn "value_array_get"
+      (value @-> uint64_t @-> returning value)
       (fun (type a) arr i ->
         let i = UInt64.to_int i in
         let arr : a array = Root.get_value arr in
         Root.create_value arr.(i))
 
   let () =
-    fn "array_length"
-      (irmin_array @-> returning uint64_t)
+    fn "value_array_length"
+      (value @-> returning uint64_t)
       (fun (type a) arr ->
-        let arr : a array = Root.get_array arr in
+        let arr : a array = Root.get_value arr in
         Array.length arr |> UInt64.of_int)
-
-  let () =
-    fn "array_to_list"
-      (irmin_array @-> returning irmin_list)
-      (fun (type a) arr ->
-        let arr : a array = Root.get_array arr in
-        Root.create_list (Array.to_list arr))
-
-  let () =
-    fn "array_of_list"
-      (irmin_list @-> returning irmin_array)
-      (fun (type a) l ->
-        let l : a list = Root.get_list l in
-        Root.create_array (Array.of_list l))
 
   let () =
     fn "value_option"
