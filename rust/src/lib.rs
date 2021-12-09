@@ -26,6 +26,10 @@ pub(crate) mod prelude {
     pub use crate::ty::Type;
     pub use crate::value::Value;
     pub use crate::Error;
+
+    pub type Json = serde_json::Map<String, serde_json::Value>;
+    pub type JsonValue = serde_json::Value;
+    pub use serde_json::json;
 }
 
 pub(crate) mod internal {

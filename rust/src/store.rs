@@ -154,28 +154,28 @@ impl<'a, T: Contents> Store<'a, T> {
     }
 
     /// Set head commit
-    pub fn set_head(&self, c: &Commit) {
+    pub fn set_head(&mut self, c: &Commit) {
         unsafe { irmin_set_head(self.ptr, c.ptr) }
     }
 
     /// Update current branch to the specified commit
-    pub fn fast_forward(&self, c: &Commit) -> bool {
+    pub fn fast_forward(&mut self, c: &Commit) -> bool {
         unsafe { irmin_fast_forward(self.ptr, c.ptr) }
     }
 
     /// Merge with another branch
-    pub fn merge_with_branch(&self, branch: impl AsRef<str>, info: Info) -> bool {
+    pub fn merge_with_branch(&mut self, branch: impl AsRef<str>, info: Info) -> bool {
         let branch = cstring(branch);
         unsafe { irmin_merge_with_branch(self.ptr, branch.as_ptr() as *mut _, info.ptr) }
     }
 
     /// Merge with another commit
-    pub fn merge_with_commit(&self, commit: &Commit, info: Info) -> bool {
+    pub fn merge_with_commit(&mut self, commit: &Commit, info: Info) -> bool {
         unsafe { irmin_merge_with_commit(self.ptr, commit.ptr, info.ptr) }
     }
 
     /// Merge with another store
-    pub fn merge(&self, store: &Store<T>, info: Info) -> bool {
+    pub fn merge(&mut self, store: &Store<T>, info: Info) -> bool {
         unsafe { irmin_merge_into(self.ptr, store.ptr, info.ptr) }
     }
 }
