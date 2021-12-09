@@ -13,7 +13,7 @@ void test_irmin_value_json() {
 
 void test_irmin_store() {
   // Setup config for git store
-  AUTO IrminConfig *config = irmin_config_git(NULL);
+  AUTO IrminConfig *config = irmin_config_pack(NULL, NULL);
 
   // Set root key
   AUTO IrminString *root = irmin_string_new("./tmp2", -1);
@@ -66,6 +66,18 @@ void test_irmin_store() {
   // Ensure the store contains a/b/d
   AUTO IrminPath *path3 = irmin_path_of_string(repo, "a/b/d", -1);
   assert(irmin_mem(store, path3));
+
+  // Big string
+  size_t size = 1024 * 1024 * 64;
+  char *src = malloc(size);
+  memset(src, 'a', size);
+  AUTO IrminValue *big_string = irmin_value_string(src, size);
+  AUTO IrminInfo *info2 = irmin_info_new(repo, "test", "big_string");
+  assert(irmin_set(store, path3, big_string, info2));
+  AUTO IrminString *big_string_ = (IrminString *)irmin_find(store, path3);
+  assert(irmin_string_length(big_string_) == size);
+  assert(strncmp(irmin_string_data(big_string_), src, size) == 0);
+  free(src);
 }
 
 int main(int argc, char *argv[]) {
