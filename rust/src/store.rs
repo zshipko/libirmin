@@ -173,6 +173,11 @@ impl<'a, T: Contents> Store<'a, T> {
     pub fn merge_with_commit(&self, commit: &Commit, info: Info) -> bool {
         unsafe { irmin_merge_with_commit(self.ptr, commit.ptr, info.ptr) }
     }
+
+    /// Merge with another store
+    pub fn merge(&self, store: &Store<T>, info: Info) -> bool {
+        unsafe { irmin_merge_into(self.ptr, store.ptr, info.ptr) }
+    }
 }
 
 impl<'a, T: Contents> Drop for Store<'a, T> {

@@ -238,6 +238,22 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         match res with Ok () -> true | Error _ -> false)
 
   let () =
+    fn "merge_into"
+      (store @-> store @-> info @-> returning bool)
+      (fun (type t) store store1 info ->
+        let (module Store : Irmin.Generic_key.S with type t = t), store =
+          Root.get_store store
+        in
+        let (module Store1 : Irmin.Generic_key.S with type t = t), store1 =
+          Root.get_store store1
+        in
+        let info = Root.get_info (module Store) info in
+        let res =
+          run (Store.merge_into ~into:store store1 ~info:(fun () -> info))
+        in
+        match res with Ok () -> true | Error _ -> false)
+
+  let () =
     fn "set"
       (store @-> path @-> value @-> info @-> returning bool)
       (fun (type t) store path value info ->

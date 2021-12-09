@@ -879,3 +879,11 @@ class Store:
             info = self.info("irmin", "merge commit")
         return lib.irmin_merge_with_branch(self._store, commit._commit,
                                            info._info)
+
+    def merge(self, store: 'Store', info: Optional[Info] = None) -> bool:
+        '''
+        Merge with another store
+        '''
+        if info is None:
+            info = self.info("irmin", "merge store")
+        return lib.irmin_merge_into(self._store, store._store, info._info)
