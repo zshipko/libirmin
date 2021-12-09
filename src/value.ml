@@ -236,10 +236,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "string_data"
-      (irmin_string @-> returning string)
+      (irmin_string @-> returning (ptr char))
       (fun s ->
         let s : string = Root.get_string s in
-        s)
+        coerce string (ptr char) s)
 
   let () =
     fn "string_length"
