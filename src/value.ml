@@ -23,20 +23,11 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create_value a)
 
   let () =
-    fn "value_string"
-      (ptr char @-> int64_t @-> returning value)
-      (fun s length ->
-        let length = get_length length s in
-        Root.create_value (string_from_ptr s ~length))
-
-  let () =
     fn "value_get_string"
-      (value @-> ptr uint64_t @-> returning (ptr char))
-      (fun value length ->
+      (value @-> returning irmin_string)
+      (fun value ->
         let s = Root.get_value value in
-        let len = String.length s in
-        if not (is_null length) then length <-@ UInt64.of_int len;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "value_get_int"
@@ -55,12 +46,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create_value (Bytes.of_string (string_from_ptr s ~length)))
 
   let () =
-    fn "value_list_new"
-      (void @-> returning value)
-      (fun () -> Root.create_value [])
+    fn "list_new" (void @-> returning value) (fun () -> Root.create_list [])
+
+  let () = fn "list_free" (irmin_list @-> returning void) free
 
   let () =
-    fn "value_list_add"
+    fn "list_add"
       (value @-> value @-> returning void)
       (fun (type a) list x ->
         let tl : a list = Root.get_value list in
@@ -68,29 +59,38 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.set_value list (hd :: tl))
 
   let () =
-    fn "value_list_hd"
+    fn "list_hd"
       (value @-> returning value)
       (fun list ->
         let list = Root.get_value list in
         match list with [] -> null | list -> Root.create_value (List.hd list))
 
   let () =
-    fn "value_list_tl"
+    fn "list_tl"
       (value @-> returning value)
       (fun list ->
         let list = Root.get_value list in
         Root.create_value (List.tl list))
 
   let () =
-    fn "value_array_new"
-      (uint64_t @-> value @-> returning value)
+    fn "list_length"
+      (irmin_list @-> returning uint64_t)
+      (fun (type a) x ->
+        let x : a list = Root.get_list x in
+        List.length x |> UInt64.of_int)
+
+  let () =
+    fn "array_new"
+      (uint64_t @-> value @-> returning irmin_array)
       (fun i x ->
         let x = Root.get_value x in
         Root.create_value (Array.make (UInt64.to_int i) x))
 
+  let () = fn "array_free" (irmin_array @-> returning void) free
+
   let () =
-    fn "value_array_set"
-      (value @-> uint64_t @-> value @-> returning void)
+    fn "array_set"
+      (irmin_array @-> uint64_t @-> value @-> returning void)
       (fun (type a) arr i x ->
         let i = UInt64.to_int i in
         let arr : a array = Root.get_value arr in
@@ -98,12 +98,33 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         arr.(i) <- x)
 
   let () =
-    fn "value_array_get"
-      (value @-> uint64_t @-> returning value)
+    fn "array_get"
+      (irmin_array @-> uint64_t @-> returning value)
       (fun (type a) arr i ->
         let i = UInt64.to_int i in
         let arr : a array = Root.get_value arr in
         Root.create_value arr.(i))
+
+  let () =
+    fn "array_length"
+      (irmin_array @-> returning uint64_t)
+      (fun (type a) arr ->
+        let arr : a array = Root.get_array arr in
+        Array.length arr |> UInt64.of_int)
+
+  let () =
+    fn "array_to_list"
+      (irmin_array @-> returning irmin_list)
+      (fun (type a) arr ->
+        let arr : a array = Root.get_array arr in
+        Root.create_list (Array.to_list arr))
+
+  let () =
+    fn "array_of_list"
+      (irmin_list @-> returning irmin_array)
+      (fun (type a) l ->
+        let l : a list = Root.get_list l in
+        Root.create_array (Array.of_list l))
 
   let () =
     fn "value_option"
@@ -133,13 +154,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "value_to_string"
-      (ty @-> value @-> ptr uint64_t @-> returning (ptr char))
-      (fun ty value len ->
+      (ty @-> value @-> returning irmin_string)
+      (fun ty value ->
         let t = Root.get_ty ty in
         let v = Root.get_value value in
         let s = Irmin.Type.to_string t v in
-        if not (is_null len) then len <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "value_of_string"
@@ -154,13 +174,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "value_to_bin"
-      (ty @-> value @-> ptr uint64_t @-> returning (ptr char))
-      (fun ty value length ->
+      (ty @-> value @-> returning irmin_string)
+      (fun ty value ->
         let t = Root.get_ty ty in
         let v = Root.get_value value in
         let s = Irmin.Type.(unstage (to_bin_string t)) v in
-        if not (is_null length) then length <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "value_of_bin"
@@ -175,13 +194,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "value_to_json"
-      (ty @-> value @-> ptr uint64_t @-> returning (ptr char))
-      (fun ty value len ->
+      (ty @-> value @-> returning irmin_string)
+      (fun ty value ->
         let t = Root.get_ty ty in
         let v = Root.get_value value in
         let s = Irmin.Type.(to_json_string t) v in
-        if not (is_null len) then len <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "value_of_json"
@@ -213,4 +231,29 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Irmin.Type.(unstage (compare ty)) a b)
 
   let () = fn "value_free" (value @-> returning void) free
+
+  let () =
+    fn "string_new"
+      (ptr char @-> int64_t @-> returning irmin_string)
+      (fun ptr i ->
+        let i = Int64.to_int i in
+        let length = if i < 0 then strlen ptr else i in
+        let s = string_from_ptr ptr ~length in
+        Root.create_string s)
+
+  let () =
+    fn "string_data"
+      (irmin_string @-> returning string)
+      (fun s ->
+        let s : string = Root.get_string s in
+        s)
+
+  let () =
+    fn "string_length"
+      (irmin_string @-> returning uint64_t)
+      (fun s ->
+        let s : string = Root.get_string s in
+        String.length s |> UInt64.of_int)
+
+  let () = fn "string_free" (irmin_string @-> returning void) free
 end

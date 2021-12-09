@@ -22,24 +22,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     let length = Int64.to_int length in
     if length < 0 then strlen s else length
 
-  let malloc t n =
-    coerce (ptr void) (ptr t)
-    @@ Foreign.foreign "malloc" (size_t @-> returning (ptr void)) n
-
-  let memcpy_ocaml_string t dest src n =
-    coerce (ptr void) (ptr t)
-    @@ Foreign.foreign "memcpy"
-         (ptr t @-> ocaml_string @-> size_t @-> returning (ptr void))
-         dest src n
-
-  let malloc_string s =
-    let len = String.length s in
-    let m : char ptr = malloc char (Unsigned.Size_t.of_int (len + 1)) in
-    let st = Ctypes.ocaml_string_start s in
-    let _ = memcpy_ocaml_string char m st (Unsigned.Size_t.of_int len) in
-    m +@ String.length s <-@ char_of_int 0;
-    m
-
   let fn ?(lock = false) name t f =
     I.internal ~runtime_lock:lock ("irmin_" ^ name) t f
 
@@ -144,5 +126,23 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         (module S : Irmin.Generic_key.S with type Schema.Info.t = a)
         (r : S.info) =
       Root.create r
+
+    let get_string x : string = Root.get x
+
+    let set_string ptr (x : string) : unit = Root.set ptr x
+
+    let create_string (s : string) = Root.create s
+
+    let get_list x : 'a list = Root.get x
+
+    let set_list ptr (x : 'a list) : unit = Root.set ptr x
+
+    let create_list (s : 'a list) = Root.create s
+
+    let get_array x : 'a array = Root.get x
+
+    let set_array ptr (x : 'a array) : unit = Root.set ptr x
+
+    let create_array (s : 'a array) = Root.create s
   end
 end

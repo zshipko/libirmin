@@ -111,11 +111,11 @@ impl Type {
 
     /// Get the name of a type
     pub fn name(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let name = unsafe { irmin_type_name(self.ptr, &mut len) };
+        let name = unsafe { irmin_type_name(self.ptr) };
         if name.is_null() {
             return Err(Error::NullPtr);
         }
-        Ok(IrminString(name, len as usize))
+
+        Ok(IrminString::wrap(name))
     }
 }

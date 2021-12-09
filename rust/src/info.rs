@@ -39,22 +39,20 @@ impl<'a> Info<'a> {
 
     /// Get author
     pub fn author(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let ptr = unsafe { irmin_info_author(self.repo.ptr, self.ptr, &mut len) };
+        let ptr = unsafe { irmin_info_author(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
-        Ok(IrminString(ptr, len as usize))
+        Ok(IrminString::wrap(ptr))
     }
 
     /// Get message
     pub fn message(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let ptr = unsafe { irmin_info_message(self.repo.ptr, self.ptr, &mut len) };
+        let ptr = unsafe { irmin_info_message(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
-        Ok(IrminString(ptr, len as usize))
+        Ok(IrminString::wrap(ptr))
     }
 }
 

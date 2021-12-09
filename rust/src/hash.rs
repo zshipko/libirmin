@@ -31,12 +31,11 @@ impl<'a> Hash<'a> {
 
     /// Convert from Hash to String
     pub fn to_string<T: Contents>(&self) -> String {
-        let mut len = 0;
-        let s = unsafe { irmin_hash_to_string(self.repo.ptr, self.ptr, &mut len) };
+        let s = unsafe { irmin_hash_to_string(self.repo.ptr, self.ptr) };
         if s.is_null() {
             return String::new();
         }
-        IrminString(s, len as usize).into()
+        IrminString::wrap(s).into()
     }
 }
 

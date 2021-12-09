@@ -38,15 +38,14 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "path_to_string"
-      (repo @-> path @-> ptr uint64_t @-> returning (ptr char))
-      (fun (type repo) repo p l ->
+      (repo @-> path @-> returning irmin_string)
+      (fun (type repo) repo p ->
         let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
           Root.get_repo repo
         in
         let path = Root.get_path (module Store) p in
         let s = Irmin.Type.to_string Store.Path.t path in
-        if not (is_null l) then l <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "path_parent"
@@ -125,15 +124,14 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "hash_to_string"
-      (repo @-> hash @-> ptr uint64_t @-> returning (ptr char))
-      (fun (type repo) repo hash l ->
+      (repo @-> hash @-> returning irmin_string)
+      (fun (type repo) repo hash ->
         let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
           Root.get_repo repo
         in
         let hash = Root.get_hash (module Store) hash in
         let s = Irmin.Type.to_string Store.hash_t hash in
-        if not (is_null l) then l <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "hash_of_string"

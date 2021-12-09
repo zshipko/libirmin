@@ -16,7 +16,8 @@ void test_irmin_store() {
   AUTO IrminConfig *config = irmin_config_git(NULL);
 
   // Set root key
-  AUTO IrminValue *root = irmin_value_string("./tmp2", -1);
+  AUTO IrminString *tmp = irmin_string_new("./tmp2", -1);
+  AUTO IrminValue *root = irmin_value_make(tmp);
   AUTO IrminType *ty = irmin_type_string();
   assert(irmin_config_set(config, "root", ty, root));
 
@@ -25,8 +26,8 @@ void test_irmin_store() {
   AUTO Irmin *store = irmin_main(repo);
 
   // Create new string value
-  char *x = "123";
-  AUTO IrminValue *a = irmin_value_string(x, -1);
+  AUTO IrminString *x = irmin_string_new("123", 3);
+  AUTO IrminValue *a = irmin_value_make(x);
 
   // Create path: a/b/c
   char *k[] = {"a", "b", "c", NULL};
@@ -44,9 +45,9 @@ void test_irmin_store() {
   assert(v);
 
   // Get string representation
-  uint64_t length = 0;
-  char *s = irmin_value_get_string(v, &length);
-  assert(strncmp(s, x, length) == 0);
+  IrminString *s = irmin_value_get_string(v);
+  uint64_t length = irmin_string_length(s);
+  assert(strncmp(irmin_string_data(s), irmin_string_data(x), length) == 0);
   free(s);
 
   // Check that tree exists at a/b
@@ -58,7 +59,8 @@ void test_irmin_store() {
 
   // Set d to "456"
   AUTO IrminPath *path2 = irmin_path_of_string(repo, "d", 1);
-  AUTO IrminValue *b = irmin_value_string("456", -1);
+  AUTO IrminString *bs = irmin_string_new("456", -1);
+  AUTO IrminValue *b = irmin_value_make(bs);
   irmin_tree_add(repo, t, path2, b);
   assert(irmin_tree_mem(repo, t, path2));
 

@@ -6,6 +6,30 @@ import json
 PathType = Union['Path', str, Sequence[str]]
 
 
+class String:
+    def __init__(self, ptr):
+        if isinstance(ptr, str):
+            ptr = str.encode(ptr)
+            self._str = lib.irmin_string_new(ptr, len(ptr))
+        elif isinstance(ptr, bytes):
+            self._str = lib.irmin_string_new(ptr, len(ptr))
+        else:
+            self._str = ptr
+
+    def __len__(self):
+        return lib.irmin_string_length(self._str)
+
+    def __bytes__(self):
+        s = lib.irmin_string_data(self._str)
+        return ffi.string(s)
+
+    def __str__(self):
+        return bytes.decode(self.__bytes__())
+
+    def __del__(self):
+        lib.irmin_string_free(self._str)
+
+
 class Type:
     '''
     Wrapper for Irmin.Type
@@ -99,10 +123,8 @@ class Type:
         '''
         Type name
         '''
-        s = lib.irmin_type_name(self._type, ffi.NULL)
-        st = ffi.string(s)
-        lib.free(s)
-        return bytes.decode(st)
+        s = lib.irmin_type_name(self._type)
+        return String(s).__str__()
 
     def __str__(self):
         return self.name()
@@ -169,15 +191,16 @@ class Value:
         '''
         string value
         '''
-        b = str.encode(s)
-        return Value(lib.irmin_value_string(b, len(b)), Type.string())
+        x = String(s)
+        return Value(lib.irmin_value_make(x._str), Type.string())
 
     @staticmethod
     def bytes(b: bytes) -> 'Value':
         '''
         string value from Python bytes
         '''
-        return Value(lib.irmin_value_string(b, len(b)), Type.string())
+        x = String(b)
+        return Value(lib.irmin_value_make(x._str), Type.string())
 
     @staticmethod
     def json(d: dict) -> Optional['Value']:
@@ -210,21 +233,15 @@ class Value:
         '''
         Get Python bytes from string value
         '''
-        n = ffi.new("uint64_t[1]", [0])
-        s = lib.irmin_value_get_string(self._value, n)
-        st = ffi.string(s, n[0])
-        lib.free(s)
-        return st
+        s = lib.irmin_value_get_string(self._value)
+        return String(s)
 
     def to_bin(self):
         '''
         Encode a value using Irmin's binary encoding
         '''
-        n = ffi.new("uint64_t[1]", [0])
-        s = lib.irmin_value_to_bin(self.type._type, self._value, n)
-        st = ffi.string(s, n[0])
-        lib.free(s)
-        return st
+        s = lib.irmin_value_to_bin(self.type._type, self._value)
+        return String(s)
 
     @staticmethod
     def of_bin(t: Type, b) -> Optional['Value']:
@@ -255,11 +272,8 @@ class Value:
         '''
         Same as to_string but returns Python bytes
         '''
-        n = ffi.new("uint64_t[1]", [0])
-        s = lib.irmin_value_to_string(self.type._type, self._value, n)
-        st = ffi.string(s, n[0])
-        lib.free(s)
-        return st
+        s = lib.irmin_value_to_string(self.type._type, self._value)
+        return String(s).__bytes__()
 
     @staticmethod
     def of_bytes(t: Type, b) -> Optional['Value']:
@@ -275,11 +289,8 @@ class Value:
         '''
         Encode a value using Irmin's JSON encoding
         '''
-        n = ffi.new("uint64_t[1]", [0])
-        s = lib.irmin_value_to_json(self.type._type, self._value, n)
-        st = ffi.string(s, n[0])
-        lib.free(s)
-        return bytes.decode(st)
+        s = lib.irmin_value_to_json(self.type._type, self._value)
+        return String(s).__str__()
 
     def to_dict(self) -> dict:
         '''
@@ -502,11 +513,8 @@ class Hash:
         return lib.irmin_hash_equal(self.repo._repo, self._hash, other._hash)
 
     def __bytes__(self):
-        n = ffi.new("uint64_t[1]", [0])
-        s = lib.irmin_hash_to_string(self.repo._repo, self._hash, n)
-        st = ffi.string(s, n[0])
-        lib.free(s)
-        return st
+        s = lib.irmin_hash_to_string(self.repo._repo, self._hash)
+        return String(s).__bytes__()
 
     @staticmethod
     def of_string(repo, s):
@@ -556,9 +564,7 @@ class Info:
         Get author
         '''
         s = lib.irmin_info_author(self.repo._repo, self._info)
-        st = ffi.string(s)
-        lib.free(s)
-        return bytes.decode(st)
+        return String(s).__str__()
 
     @property
     def message(self) -> str:
@@ -566,9 +572,7 @@ class Info:
         Get message
         '''
         s = lib.irmin_info_message(self.repo._repo, self._info)
-        st = ffi.string(s)
-        lib.free(s)
-        return bytes.decode(st)
+        return String(s).__str__()
 
     def __del__(self):
         lib.irmin_info_free(self._info)

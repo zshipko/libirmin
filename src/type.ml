@@ -126,12 +126,11 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "type_name"
-      (ty @-> ptr uint64_t @-> returning (ptr char))
-      (fun ty len ->
+      (ty @-> returning irmin_string)
+      (fun ty ->
         let ty = Root.get_ty ty in
         let s = Fmt.to_to_string Irmin.Type.pp_ty ty in
-        if not (is_null len) then len <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () = fn "type_free" (ty @-> returning void) free
 end

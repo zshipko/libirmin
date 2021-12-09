@@ -84,12 +84,11 @@ impl<'a> Path<'a> {
 
     /// Convert a path to String
     pub fn to_string(&self) -> String {
-        let mut len = 0u64;
-        let ptr = unsafe { irmin_path_to_string(self.repo.ptr, self.ptr, &mut len) };
+        let ptr = unsafe { irmin_path_to_string(self.repo.ptr, self.ptr) };
         if ptr.is_null() {
             return String::new();
         }
-        let s = IrminString(ptr, len as usize);
+        let s = IrminString::wrap(ptr);
         s.into()
     }
 }

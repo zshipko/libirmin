@@ -36,8 +36,8 @@ impl Value {
     /// OCaml string
     pub fn string(s: impl AsRef<str>) -> Result<Value, Error> {
         let s = s.as_ref();
-
-        let ptr = unsafe { irmin_value_string(s.as_ptr() as *mut _, s.len() as i64) };
+        let s = IrminString::new(s)?;
+        let ptr = unsafe { irmin_value_make(s.0 as *mut _) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
@@ -50,8 +50,8 @@ impl Value {
     /// OCaml string from Rust &[u8]
     pub fn bytes(s: impl AsRef<[u8]>) -> Result<Value, Error> {
         let s = s.as_ref();
-
-        let ptr = unsafe { irmin_value_string(s.as_ptr() as *mut _, s.len() as i64) };
+        let s = IrminString::new(s)?;
+        let ptr = unsafe { irmin_value_make(s.0 as *mut _) };
         if ptr.is_null() {
             return Err(Error::NullPtr);
         }
@@ -111,13 +111,11 @@ impl Value {
 
     /// Encode a value using Irmin's string encoding
     pub fn to_string(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let s = unsafe { irmin_value_to_string(self.ty.ptr, self.ptr, &mut len) };
+        let s = unsafe { irmin_value_to_string(self.ty.ptr, self.ptr) };
         if s.is_null() {
             return Err(Error::NullPtr);
         }
-
-        Ok(IrminString(s, len as usize))
+        Ok(crate::IrminString::wrap(s))
     }
 
     /// Parse a value of the specified type from Irmin's JSON encoding
@@ -134,13 +132,12 @@ impl Value {
 
     /// Encode a value using Irmin's JSON encoding
     pub fn to_json(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let s = unsafe { irmin_value_to_json(self.ty.ptr, self.ptr, &mut len) };
+        let s = unsafe { irmin_value_to_json(self.ty.ptr, self.ptr) };
         if s.is_null() {
             return Err(Error::NullPtr);
         }
 
-        Ok(IrminString(s, len as usize))
+        Ok(crate::IrminString::wrap(s))
     }
 
     /// Parse a value of the specified type from Irmin's binary encoding
@@ -156,23 +153,21 @@ impl Value {
 
     /// Encode a value using Irmin's binary encoding
     pub fn to_bin(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let s = unsafe { irmin_value_to_bin(self.ty.ptr, self.ptr, &mut len) };
+        let s = unsafe { irmin_value_to_bin(self.ty.ptr, self.ptr) };
         if s.is_null() {
             return Err(Error::NullPtr);
         }
 
-        Ok(IrminString(s, len as usize))
+        Ok(crate::IrminString::wrap(s))
     }
 
     /// Get IrminString from string value
     pub fn get_string(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let s = unsafe { irmin_value_get_string(self.ptr, &mut len) };
+        let s = unsafe { irmin_value_get_string(self.ptr) };
         if s.is_null() {
             return Err(Error::NullPtr);
         }
 
-        Ok(IrminString(s, len as usize))
+        Ok(crate::IrminString::wrap(s))
     }
 }

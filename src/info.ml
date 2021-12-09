@@ -24,27 +24,25 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "info_message"
-      (repo @-> info @-> ptr uint64_t @-> returning (ptr char))
-      (fun (type repo) repo info l ->
+      (repo @-> info @-> returning irmin_string)
+      (fun (type repo) repo info ->
         let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
           Root.get_repo repo
         in
         let info = Root.get_info (module Store) info in
         let s = Store.Info.message info in
-        if not (is_null l) then l <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "info_author"
-      (repo @-> info @-> ptr uint64_t @-> returning (ptr char))
-      (fun (type repo) repo info l ->
+      (repo @-> info @-> returning irmin_string)
+      (fun (type repo) repo info ->
         let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
           Root.get_repo repo
         in
         let info = Root.get_info (module Store) info in
         let s = Store.Info.author info in
-        if not (is_null l) then l <-@ UInt64.of_int @@ String.length s;
-        malloc_string s)
+        Root.create_string s)
 
   let () =
     fn "info_date"
