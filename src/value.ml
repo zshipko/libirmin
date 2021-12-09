@@ -19,11 +19,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "value_clone" (value @-> returning value) (fun x -> Root.create_value x)
 
   let () =
-    fn "value_string"
-      (irmin_string @-> returning value)
-      (fun x -> Root.create_value (Root.get_string x))
-
-  let () =
     fn "value_get_string"
       (value @-> returning irmin_string)
       (fun value ->
@@ -45,6 +40,13 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       (fun s length ->
         let length = get_length length s in
         Root.create_value (Bytes.of_string (string_from_ptr s ~length)))
+
+  let () =
+    fn "value_string"
+      (ptr char @-> int64_t @-> returning value)
+      (fun s length ->
+        let length = get_length length s in
+        Root.create_value (string_from_ptr s ~length))
 
   let () =
     fn "value_list_new"

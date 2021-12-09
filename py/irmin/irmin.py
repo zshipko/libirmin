@@ -194,16 +194,15 @@ class Value:
         '''
         string value
         '''
-        x = String(s)
-        return Value(lib.irmin_value_string(x._str), Type.string())
+        b = str.encode(s)
+        return Value(lib.irmin_value_string(b, len(b)), Type.string())
 
     @staticmethod
     def bytes(b: bytes) -> 'Value':
         '''
         string value from Python bytes
         '''
-        x = String(b)
-        return Value(lib.irmin_value_string(x._str), Type.string())
+        return Value(lib.irmin_value_string(b, len(b)), Type.string())
 
     @staticmethod
     def json(d: dict) -> Optional['Value']:
