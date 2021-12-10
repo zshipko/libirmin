@@ -359,10 +359,10 @@ class Value:
 class Contents:
     def __init__(self, name, to_value, from_value, ty, py_ty):
         self.name = name
-        self.python_type = py_ty
+        self.type = py_ty
         self.to_value = to_value
         self.from_value = from_value
-        self.type = ty
+        self.irmin_type = ty
 
 
 content_types = {
@@ -471,6 +471,12 @@ class Repo:
         '''
         self.config = config
         self._repo = lib.irmin_repo_new(self.config._config)
+
+    def type(self):
+        return self.config.contents.type
+
+    def irmin_type(self):
+        return self.config.contents.irmin_type
 
     def __del__(self):
         lib.irmin_repo_free(self._repo)
@@ -706,7 +712,7 @@ class Tree:
         if v == ffi.NULL:
             return None
         return self.repo.config.contents.from_value(
-            Value(v, self.repo.config.contents.type))
+            Value(v, self.repo.config.contents.irmin_type))
 
     def __delitem__(self, path: PathType):
         path = Path.wrap(self.repo, path)
@@ -773,7 +779,7 @@ class Store:
         if x == ffi.NULL:
             return None
         return self.repo.config.contents.from_value(
-            Value(x, self.repo.config.contents.type))
+            Value(x, self.repo.config.contents.irmin_type))
 
     def tree(self, path: PathType):
         '''
