@@ -517,6 +517,9 @@ class Path:
             a.append(ffi.NULL)
             x = ffi.new("char*[]", a)
             ptr = lib.irmin_path(self.repo._repo, x)
+        elif isinstance(ptr, str):
+            b = str.encode(ptr)
+            ptr = lib.irmin_path_of_string(repo._repo, b, len(b))
         check(ptr)
         self._path = ptr
 
@@ -525,14 +528,14 @@ class Path:
         '''
         Create an empty path
         '''
-        p = lib.irmin_path_empty(repo)
+        p = lib.irmin_path_empty(repo._repo)
         return Path(repo, p)
 
     def append(self, s):
         '''
         Append to a path, returning a new path
         '''
-        if isinstance(PathType, s):
+        if isinstance(s, (Path, tuple, list)):
             path = Path.wrap(self.repo, s)
             ptr = lib.irmin_path_append_path(self.repo._repo, self._path,
                                              path._path)
@@ -563,8 +566,6 @@ class Path:
     def wrap(repo: Repo, path: PathType) -> 'Path':
         if isinstance(path, Path):
             return path
-        elif isinstance(path, str):
-            return Path(repo, [path])
         return Path(repo, path)
 
     @staticmethod
@@ -848,6 +849,9 @@ class Store:
         ffi.irmin_remove(self._store, path._path)
 
     def __contains__(self, path: PathType) -> bool:
+        return self.mem(path)
+
+    def mem(self, path: PathType) -> bool:
         path = Path.wrap(self.repo, path)
         return lib.irmin_mem(self._store, path._path)
 

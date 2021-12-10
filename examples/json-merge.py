@@ -1,8 +1,4 @@
-import sys
-
-sys.path.extend(['./py', '../py'])
-
-import irmin  # type: ignore # noqa: E402
+from util import *
 
 # Configure an in-memory store with `json` contents
 config = irmin.Config.mem(contents='json')
