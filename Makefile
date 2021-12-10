@@ -7,11 +7,11 @@ build:
 	@rm -rf py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 	@mkdir -p include
 	@mkdir -p lib
-	dune build
-	cp _build/default/irmin.h  ./include
-	cp _build/default/libirmin.$(SOEXT) ./lib
-	cp _build/default/irmin.h  py/irmin
-	cp _build/default/libirmin.$(SOEXT) py/irmin
+	@dune build
+	@cp _build/default/irmin.h  ./include
+	@cp _build/default/libirmin.$(SOEXT) ./lib
+	@cp _build/default/irmin.h  py/irmin
+	@cp _build/default/libirmin.$(SOEXT) py/irmin
 
 clean:
 	@dune clean

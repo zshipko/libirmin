@@ -3,7 +3,7 @@ use crate::internal::*;
 /// Wrapper around String_list Path type
 pub struct Path<'a> {
     pub ptr: *mut IrminPath,
-    repo: UntypedRepo<'a>,
+    pub repo: UntypedRepo<'a>,
 }
 
 impl<'a> Drop for Path<'a> {
@@ -24,9 +24,7 @@ impl<'a> Path<'a> {
         unsafe {
             let s = s.as_ref();
             let ptr = irmin_path_of_string(repo.ptr, s.as_ptr() as *mut _, s.len() as i64);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
+            check!(ptr);
             Ok(Path {
                 ptr,
                 repo: UntypedRepo::new(repo),
@@ -40,9 +38,17 @@ impl<'a> Path<'a> {
         let mut t: Vec<_> = s.iter().map(|x| x.as_ptr() as *mut u8).collect();
         t.push(std::ptr::null_mut());
         let ptr = unsafe { irmin_path(repo.ptr, t.as_ptr() as *mut _) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
+        Ok(Path {
+            ptr,
+            repo: UntypedRepo::new(repo),
+        })
+    }
+
+    /// Create an empty path
+    pub fn empty<T: Contents>(repo: &'a Repo<T>) -> Result<Path<'a>, Error> {
+        let ptr = unsafe { irmin_path_empty(repo.ptr as *mut _) };
+        check!(ptr);
         Ok(Path {
             ptr,
             repo: UntypedRepo::new(repo),
@@ -72,24 +78,27 @@ impl<'a> Path<'a> {
                 s.len() as i64,
             )
         };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
         Ok(Path {
             ptr,
+            repo: self.repo.clone(),
+        })
+    }
 
+    /// Append two paths
+    pub fn append_path(&self, s: &Path) -> Result<Path<'a>, Error> {
+        let ptr = unsafe { irmin_path_append_path(self.repo.ptr, self.ptr, s.ptr) };
+        check!(ptr);
+        Ok(Path {
+            ptr,
             repo: self.repo.clone(),
         })
     }
 
     /// Convert a path to String
-    pub fn to_string(&self) -> String {
-        let mut len = 0u64;
-        let ptr = unsafe { irmin_path_to_string(self.repo.ptr, self.ptr, &mut len) };
-        if ptr.is_null() {
-            return String::new();
-        }
-        let s = IrminString(ptr, len as usize);
-        s.into()
+    pub fn to_string(&self) -> Result<String, Error> {
+        let ptr = unsafe { irmin_path_to_string(self.repo.ptr, self.ptr) };
+        let s = IrminString::wrap(ptr);
+        s.map(|x| x.into())
     }
 }

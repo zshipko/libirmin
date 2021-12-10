@@ -11,10 +11,7 @@ impl<T: Contents> Repo<T> {
     pub fn new(config: Config<T>) -> Result<Repo<T>, Error> {
         unsafe {
             let ptr = irmin_repo_new(config.ptr);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Repo { config, ptr })
         }
     }

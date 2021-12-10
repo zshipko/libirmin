@@ -22,10 +22,7 @@ impl<'a> Info<'a> {
                 message.as_ptr() as *mut _,
             )
         };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
-
+        check!(ptr);
         Ok(Info {
             ptr,
             repo: UntypedRepo::new(repo),
@@ -39,22 +36,14 @@ impl<'a> Info<'a> {
 
     /// Get author
     pub fn author(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let ptr = unsafe { irmin_info_author(self.repo.ptr, self.ptr, &mut len) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
-        Ok(IrminString(ptr, len as usize))
+        let ptr = unsafe { irmin_info_author(self.repo.ptr, self.ptr) };
+        IrminString::wrap(ptr)
     }
 
     /// Get message
     pub fn message(&self) -> Result<IrminString, Error> {
-        let mut len = 0;
-        let ptr = unsafe { irmin_info_message(self.repo.ptr, self.ptr, &mut len) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
-        Ok(IrminString(ptr, len as usize))
+        let ptr = unsafe { irmin_info_message(self.repo.ptr, self.ptr) };
+        IrminString::wrap(ptr)
     }
 }
 

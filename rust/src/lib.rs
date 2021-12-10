@@ -1,3 +1,28 @@
+/// Set internal log level
+pub fn set_log_level(s: Option<&str>) {
+    let s = s.map(internal::cstring);
+    unsafe {
+        bindings::irmin_log_level(
+            s.map(|x| x.as_ptr() as *mut _)
+                .unwrap_or_else(|| std::ptr::null_mut()),
+        )
+    }
+}
+
+pub fn error_msg() -> Option<IrminString> {
+    let s = unsafe { bindings::irmin_error_msg() };
+    if s.is_null() {
+        return None;
+    }
+    match IrminString::wrap(s) {
+        Ok(s) => Some(s),
+        Err(_) => None,
+    }
+}
+
+#[macro_use]
+pub mod bindings;
+
 mod commit;
 mod config;
 mod hash;
@@ -10,8 +35,6 @@ mod tree;
 mod ty;
 mod util;
 mod value;
-
-pub mod bindings;
 
 pub(crate) mod prelude {
     pub use crate::commit::Commit;
@@ -26,6 +49,10 @@ pub(crate) mod prelude {
     pub use crate::ty::Type;
     pub use crate::value::Value;
     pub use crate::Error;
+
+    pub type Json = serde_json::Map<String, serde_json::Value>;
+    pub type JsonValue = serde_json::Value;
+    pub use serde_json::json;
 }
 
 pub(crate) mod internal {
@@ -39,6 +66,7 @@ pub use crate::prelude::*;
 #[derive(Debug)]
 pub enum Error {
     NullPtr,
+    Exc(IrminString),
     Json(serde_json::Error),
 }
 
@@ -48,14 +76,10 @@ impl From<serde_json::Error> for Error {
     }
 }
 
-/// Set internal log level
-pub fn set_log_level(s: Option<&str>) {
-    let s = s.map(internal::cstring);
-    unsafe {
-        bindings::irmin_log_level(
-            s.map(|x| x.as_ptr() as *mut _)
-                .unwrap_or_else(|| std::ptr::null_mut()),
-        )
+pub fn raise_error<T>(x: T) -> Result<T, Error> {
+    match error_msg() {
+        Some(err) => Err(Error::Exc(err)),
+        None => Ok(x),
     }
 }
 
@@ -78,7 +102,7 @@ mod tests {
         assert!(store.set(&path, &value, info)?);
 
         let head = store.head().unwrap();
-        assert!(head.parents().len() == 0);
+        assert!(head.parents()?.len() == 0);
 
         let s = store.find(&path)?;
         assert!(s.unwrap() == value);
@@ -103,8 +127,8 @@ mod tests {
         assert!(store.set(&path, &value1, info)?);
 
         let head1 = store.head().unwrap();
-        assert!(head1.parents().len() == 1);
-        assert!(head1.parents()[0] == head);
+        assert!(head1.parents()?.len() == 1);
+        assert!(head1.parents()?[0] == head);
 
         Ok(())
     }

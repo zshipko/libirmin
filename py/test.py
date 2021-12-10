@@ -1,10 +1,11 @@
-from irmin import Config, Store, Commit, Repo, Type, Hash, Value, log_level
+from irmin import Config, Store, Commit, Repo, Type, Hash, \
+                  Value, String, Path, log_level
 
 log_level("error")
 
 
-def init():
-    config = Config.git_mem(contents='json')
+def init(contents='json'):
+    config = Config.git_mem(contents=contents)
     repo = Repo(config)
     return repo, Store(repo)
 
@@ -25,17 +26,27 @@ def test_irmin_value():
 
     a = Value.bool(True)
     s = Value.to_string(a)
+    assert (type(s) == String)
     assert (s == "true")
+
+
+def test_bytes():
+    repo, store = init("bytes")
+    store["foo"] = b"bar"
+    assert (store["foo"] == b"bar")
 
 
 def test_irmin_head():
     repo, store = init()
+    assert (store.head.parents == [])
     store["test", "a"] = {"x": "foo"}
     c = store.head
+    assert (len(c.parents) == 1)
     store["test", "a"] = {"x": "bar"}
     d = store.head
     if d is not None:
         assert (d.parents[0].hash == c.hash)
+        assert (d.parents[0] == c)
     assert (store["test", "a"] == {"x": "bar"})
     if c is not None:
         store.set_head(c)
@@ -65,3 +76,7 @@ def test_tree():
 
     assert (store["a", "b", "c"] == {"foo": "bar"})
     assert (store["a", "b", "d"] == {"x": 0})
+
+    paths = store.list(["a", "b"])
+    assert (Path(repo, ["c"]) in paths)
+    assert (Path(repo, ["d"]) in paths)

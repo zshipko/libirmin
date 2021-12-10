@@ -1,3 +1,5 @@
+let error_msg : string option ref = ref None
+
 module Make (I : Cstubs_inverted.INTERNAL) = struct
   include Ctypes
   include Types
@@ -8,7 +10,20 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let type_name x = Fmt.to_to_string Irmin.Type.pp_ty x
 
-  let free store = if not (is_null store) then Ctypes.Root.release store
+  let catch return f =
+    try
+      let () = error_msg := None in
+      f ()
+    with exn ->
+      let () = error_msg := Some (Printexc.to_string exn) in
+      return
+    [@@inline]
+
+  let catch' f = catch null f
+
+  let free store =
+    if not (is_null store) then
+      (fun x -> catch () (fun () -> Ctypes.Root.release x)) store
 
   let strlen ptr =
     if is_null ptr then 0
@@ -22,24 +37,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     let length = Int64.to_int length in
     if length < 0 then strlen s else length
 
-  let malloc t n =
-    coerce (ptr void) (ptr t)
-    @@ Foreign.foreign "malloc" (size_t @-> returning (ptr void)) n
-
-  let memcpy_ocaml_string t dest src n =
-    coerce (ptr void) (ptr t)
-    @@ Foreign.foreign "memcpy"
-         (ptr t @-> ocaml_string @-> size_t @-> returning (ptr void))
-         dest src n
-
-  let malloc_string s =
-    let len = String.length s in
-    let m : char ptr = malloc char (Unsigned.Size_t.of_int (len + 1)) in
-    let st = Ctypes.ocaml_string_start s in
-    let _ = memcpy_ocaml_string char m st (Unsigned.Size_t.of_int len) in
-    m +@ String.length s <-@ char_of_int 0;
-    m
-
   let fn ?(lock = false) name t f =
     I.internal ~runtime_lock:lock ("irmin_" ^ name) t f
 
@@ -52,17 +49,19 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         run x
 
   module Root = struct
-    let get_repo (type a) x : a repo = Root.get x
+    let get_repo (type a) x : a repo = Root.get x [@@inline]
 
     let create_repo (type a) (module S : Irmin.Generic_key.S with type repo = a)
         (r : a repo) =
       Root.create r
+      [@@inline]
 
-    let get_store (type a) x : a store = Root.get x
+    let get_store (type a) x : a store = Root.get x [@@inline]
 
     let create_store (type a) (module S : Irmin.Generic_key.S with type t = a)
         (r : a store) =
       Root.create r
+      [@@inline]
 
     let get_config x : config = Root.get x
 
@@ -144,5 +143,26 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         (module S : Irmin.Generic_key.S with type Schema.Info.t = a)
         (r : S.info) =
       Root.create r
+
+    let get_string x : string = Root.get x
+
+    let set_string ptr (x : string) : unit = Root.set ptr x
+
+    let create_string (s : string) = Root.create s
+
+    let get_path_list x : unit ptr CArray.t = Root.get x
+
+    let create_path_list (type a b)
+        (module S : Irmin.Generic_key.S
+          with type Schema.Path.t = a
+           and type tree = b) (x : unit ptr CArray.t) =
+      Root.create x
+
+    let get_commit_list x : unit ptr CArray.t = Root.get x
+
+    let create_commit_list (type a)
+        (module S : Irmin.Generic_key.S with type commit = a)
+        (x : unit ptr CArray.t) =
+      Root.create x
   end
 end

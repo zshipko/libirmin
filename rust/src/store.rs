@@ -11,10 +11,7 @@ impl<'a, T: Contents> Store<'a, T> {
     pub fn new(repo: &'a Repo<T>) -> Result<Store<'a, T>, Error> {
         unsafe {
             let ptr = irmin_main(repo.ptr);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Store { ptr, repo })
         }
     }
@@ -24,10 +21,7 @@ impl<'a, T: Contents> Store<'a, T> {
         let branch = cstring(branch);
         unsafe {
             let ptr = irmin_of_branch(repo.ptr, branch.as_ptr() as *mut _);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Store { ptr, repo })
         }
     }
@@ -37,6 +31,7 @@ impl<'a, T: Contents> Store<'a, T> {
         let value = value.to_value()?;
         unsafe {
             let r = irmin_set(self.ptr, path.ptr, value.ptr, info.ptr);
+            check!(r, false);
             Ok(r)
         }
     }
@@ -65,6 +60,7 @@ impl<'a, T: Contents> Store<'a, T> {
                 value.map(|x| x.ptr).unwrap_or_else(|| std::ptr::null_mut()),
                 info.ptr,
             );
+            check!(r, false);
             Ok(r)
         }
     }
@@ -73,6 +69,7 @@ impl<'a, T: Contents> Store<'a, T> {
     pub fn set_tree(&mut self, path: &Path, tree: &Tree<T>, info: Info) -> Result<bool, Error> {
         unsafe {
             let r = irmin_set_tree(self.ptr, path.ptr, tree.ptr, info.ptr);
+            check!(r, false);
             Ok(r)
         }
     }
@@ -93,6 +90,7 @@ impl<'a, T: Contents> Store<'a, T> {
                 tree.map(|x| x.ptr).unwrap_or_else(|| std::ptr::null_mut()),
                 info.ptr,
             );
+            check!(r, false);
             Ok(r)
         }
     }
@@ -100,10 +98,10 @@ impl<'a, T: Contents> Store<'a, T> {
     /// Find the value associated with the given path
     pub fn find(&self, path: &Path) -> Result<Option<T>, Error> {
         let r = unsafe { irmin_find(self.ptr, path.ptr) };
+        check!(r);
         if r.is_null() {
             return Ok(None);
         }
-
         let ty = T::ty()?;
         let v = Value { ptr: r, ty };
         let v = T::from_value(&v)?;
@@ -114,6 +112,7 @@ impl<'a, T: Contents> Store<'a, T> {
     pub fn find_tree(&self, path: &Path) -> Result<Option<Tree<T>>, Error> {
         unsafe {
             let ptr = irmin_find_tree(self.ptr, path.ptr);
+            check!(ptr);
             if ptr.is_null() {
                 return Ok(None);
             }
@@ -136,7 +135,7 @@ impl<'a, T: Contents> Store<'a, T> {
     }
 
     /// Remove the tree or value associated with the given path
-    pub fn remove(&mut self, path: &Path, info: Info) {
+    pub fn remove(&mut self, path: &Path, info: Info) -> bool {
         unsafe { irmin_remove(self.ptr, path.ptr, info.ptr) }
     }
 
@@ -154,24 +153,51 @@ impl<'a, T: Contents> Store<'a, T> {
     }
 
     /// Set head commit
-    pub fn set_head(&self, c: &Commit) {
+    pub fn set_head(&mut self, c: &Commit) {
         unsafe { irmin_set_head(self.ptr, c.ptr) }
     }
 
     /// Update current branch to the specified commit
-    pub fn fast_forward(&self, c: &Commit) -> bool {
+    pub fn fast_forward(&mut self, c: &Commit) -> bool {
         unsafe { irmin_fast_forward(self.ptr, c.ptr) }
     }
 
     /// Merge with another branch
-    pub fn merge_with_branch(&self, branch: impl AsRef<str>, info: Info) -> bool {
+    pub fn merge_with_branch(&mut self, branch: impl AsRef<str>, info: Info) -> bool {
         let branch = cstring(branch);
         unsafe { irmin_merge_with_branch(self.ptr, branch.as_ptr() as *mut _, info.ptr) }
     }
 
     /// Merge with another commit
-    pub fn merge_with_commit(&self, commit: &Commit, info: Info) -> bool {
+    pub fn merge_with_commit(&mut self, commit: &Commit, info: Info) -> bool {
         unsafe { irmin_merge_with_commit(self.ptr, commit.ptr, info.ptr) }
+    }
+
+    /// Merge with another store
+    pub fn merge(&mut self, store: &Store<T>, info: Info) -> bool {
+        unsafe { irmin_merge_into(self.ptr, store.ptr, info.ptr) }
+    }
+
+    /// List paths
+    pub fn list(&self, path: &Path) -> Result<Vec<Path>, Error> {
+        let p = unsafe { irmin_list(self.ptr, path.ptr) };
+        check!(p);
+        let len = unsafe { irmin_path_list_length(p) };
+        let mut dest = Vec::new();
+        for i in 0..len {
+            let path = unsafe { irmin_path_list_get(p, i) };
+            if path.is_null() {
+                continue;
+            }
+            dest.push(Path {
+                ptr: path,
+                repo: UntypedRepo::new(&self.repo),
+            })
+        }
+
+        unsafe { irmin_path_list_free(p) }
+
+        Ok(dest)
     }
 }
 
