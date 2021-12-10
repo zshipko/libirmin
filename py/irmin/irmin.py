@@ -63,6 +63,9 @@ class Bytes(bytes):
         t._length = length
         return t
 
+    def to_string(self):
+        return bytes.decode(self)
+
     def __len__(self) -> int:
         return self._length
 
