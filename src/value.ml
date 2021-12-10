@@ -22,17 +22,30 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "value_get_string"
       (value @-> returning irmin_string)
       (fun value ->
-        let s = Root.get_value value in
-        Root.create_string s)
+        let obj = Ctypes.Root.get value |> Obj.repr in
+        if Obj.tag obj = Obj.string_tag then Root.create_string (Obj.obj obj)
+        else null)
 
   let () =
     fn "value_get_int"
       (value @-> returning int64_t)
-      (fun x -> Int64.of_int (Root.get_value x))
+      (fun x ->
+        let obj = Ctypes.Root.get x |> Obj.repr in
+        if Obj.is_int obj then Int64.of_int (Obj.obj obj) else Int64.zero)
 
-  let () = fn "value_get_bool" (value @-> returning bool) Root.get_value
+  let () =
+    fn "value_get_bool"
+      (value @-> returning bool)
+      (fun x ->
+        let obj = Ctypes.Root.get x |> Obj.repr in
+        if Obj.is_int obj then Obj.obj obj else false)
 
-  let () = fn "value_get_float" (value @-> returning double) Root.get_value
+  let () =
+    fn "value_get_float"
+      (value @-> returning double)
+      (fun x ->
+        let obj = Ctypes.Root.get x |> Obj.repr in
+        if Obj.is_int obj then Obj.obj obj else 0.)
 
   let () =
     fn "value_bytes"
