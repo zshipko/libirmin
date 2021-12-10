@@ -30,6 +30,12 @@ def test_irmin_value():
     assert (s == "true")
 
 
+def test_bytes():
+    repo, store = init("bytes")
+    store["foo"] = b"bar"
+    assert (store["foo"] == b"bar")
+
+
 def test_irmin_head():
     repo, store = init()
     store["test", "a"] = {"x": "foo"}

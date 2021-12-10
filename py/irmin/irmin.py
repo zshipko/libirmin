@@ -7,42 +7,62 @@ PathType = Union['Path', str, Sequence[str]]
 
 
 class String(str):
-    def __init__(self, ptr):
+    _length: int
+    _bytes: bytes
+    _ptr: ffi.CData
+
+    def __new__(cls, ptr):
         if isinstance(ptr, str):
             ptr = str.encode(ptr)
-            self._ptr = lib.irmin_string_new(ptr, len(ptr))
+            cls._ptr = lib.irmin_string_new(ptr, len(ptr))
         elif isinstance(ptr, bytes):
-            self._ptr = lib.irmin_string_new(ptr, len(ptr))
+            cls._ptr = lib.irmin_string_new(ptr, len(ptr))
         else:
-            self._ptr = ptr
+            cls._ptr = ptr
+        length = lib.irmin_string_length(cls._ptr)
+        s = lib.irmin_string_data(cls._ptr)
+        b = ffi.unpack(s, length)
+        t = super().__new__(cls, bytes.decode(b, errors="ignore"))
+        t._ptr = cls._ptr
+        t._bytes = b
+        t._length = length
+        return t
 
     def __len__(self) -> int:
-        return lib.irmin_string_length(self._ptr)
+        return self._length
 
     def __bytes__(self) -> bytes:
-        s = lib.irmin_string_data(self._ptr)
-        return ffi.unpack(s, self.__len__())
+        return self._bytes
 
-    def __str__(self) -> str:
-        return bytes.decode(self.__bytes__())
+    def to_bytes(self):
+        return bytes(self)
 
-    def __repr__(self) -> str:
-        return str.__repr__(self.__str__())
+    def __del__(self):
+        lib.irmin_string_free(self._ptr)
 
-    def __eq__(self, other):
-        return self.__str__() == str(other)
 
-    def __ne__(self, other):
-        return self.__str__() != str(other)
+class Bytes(bytes):
+    _length: int
+    _ptr: ffi.CData
 
-    def __hash__(self):
-        return str.__hash__(self.__str__())
+    def __new__(cls, ptr):
+        if isinstance(ptr, str):
+            ptr = str.encode(ptr)
+            cls._ptr = lib.irmin_string_new(ptr, len(ptr))
+        elif isinstance(ptr, bytes):
+            cls._ptr = lib.irmin_string_new(ptr, len(ptr))
+        else:
+            cls._ptr = ptr
+        length = lib.irmin_string_length(cls._ptr)
+        s = lib.irmin_string_data(cls._ptr)
+        b = ffi.unpack(s, length)
+        t = super().__new__(cls, b)
+        t._ptr = cls._ptr
+        t._length = length
+        return t
 
-    def __getitem__(self, x):
-        return str.__getitem__(self.__str__(), x)
-
-    def __setitem__(self, x, y):
-        return str.__setitem__(self.__str__(), x, y)
+    def __len__(self) -> int:
+        return self._length
 
     def __del__(self):
         lib.irmin_string_free(self._ptr)
@@ -247,19 +267,19 @@ class Value:
         s = lib.irmin_value_get_string(self._value)
         return String(s)
 
-    def get_bytes(self):
+    def get_bytes(self) -> Bytes:
         '''
         Get Python bytes from string value
         '''
         s = lib.irmin_value_get_string(self._value)
-        return String(s)
+        return Bytes(s)
 
-    def to_bin(self):
+    def to_bin(self) -> Bytes:
         '''
         Encode a value using Irmin's binary encoding
         '''
         s = lib.irmin_value_to_bin(self.type._type, self._value)
-        return String(s)
+        return Bytes(s)
 
     @staticmethod
     def of_bin(t: Type, b) -> Optional['Value']:
@@ -286,12 +306,12 @@ class Value:
         b = str.encode(s)
         return Value.of_bytes(t, b)
 
-    def to_bytes(self):
+    def to_bytes(self) -> Bytes:
         '''
         Same as to_string but returns Python bytes
         '''
         s = lib.irmin_value_to_string(self.type._type, self._value)
-        return String(s).__bytes__()
+        return Bytes(s)
 
     @staticmethod
     def of_bytes(t: Type, b) -> Optional['Value']:
@@ -303,7 +323,7 @@ class Value:
             return None
         return Value(v, t)
 
-    def to_json(self) -> str:
+    def to_json(self) -> String:
         '''
         Encode a value using Irmin's JSON encoding
         '''
@@ -314,7 +334,7 @@ class Value:
         '''
         Encode a value to JSON and parse it into a Python dict
         '''
-        return json.loads(str(self.to_string()))
+        return json.loads(self.to_string())
 
     @staticmethod
     def of_json(t: Type, b) -> Optional['Value']:
@@ -353,9 +373,8 @@ content_types = {
     "json":
     Contents("json", Value.json, Value.to_dict, Type.json(), dict),
     "json-value":
-    Contents("json-value",
-             Value.json_value, lambda x: json.loads(str(Value.to_string(x))),
-             Type.json_value(), Any),
+    Contents("json-value", Value.json_value,
+             lambda x: json.loads(Value.to_string(x)), Type.json_value(), Any),
 }
 
 
@@ -376,7 +395,7 @@ class Config:
         '''
         assert (ptr != ffi.NULL)
         self._config = ptr
-        self.contents = content_types[contents]
+        self.contents = contents
 
     def root(self, root: str):
         '''
@@ -398,7 +417,8 @@ class Config:
         '''
         Configure a tezos context store
         '''
-        return Config(lib.irmin_config_tezos(), contents="string")
+        return Config(lib.irmin_config_tezos(),
+                      contents=content_types['bytes'])
 
     @staticmethod
     def git(contents="string"):
@@ -406,8 +426,7 @@ class Config:
         Configure an on-disk git store
         '''
         c = content_types[contents]
-        return Config(lib.irmin_config_git(str.encode(c.name)),
-                      contents=contents)
+        return Config(lib.irmin_config_git(str.encode(c.name)), contents=c)
 
     @staticmethod
     def git_mem(contents="string"):
@@ -415,8 +434,7 @@ class Config:
         Configure an in-memory git store
         '''
         c = content_types[contents]
-        return Config(lib.irmin_config_git_mem(str.encode(contents)),
-                      contents=c.name)
+        return Config(lib.irmin_config_git_mem(str.encode(c.name)), contents=c)
 
     @staticmethod
     def pack(contents="string", hash: Optional[str] = None):
@@ -425,8 +443,7 @@ class Config:
         '''
         c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
-        return Config(lib.irmin_config_pack(h, str.encode(contents)),
-                      contents=c.name)
+        return Config(lib.irmin_config_pack(h, str.encode(c.name)), contents=c)
 
     @staticmethod
     def mem(contents="string", hash: Optional[str] = None):
@@ -435,8 +452,7 @@ class Config:
         '''
         c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
-        return Config(lib.irmin_config_mem(h, str.encode(contents)),
-                      contents=c.name)
+        return Config(lib.irmin_config_mem(h, str.encode(c.name)), contents=c)
 
     @staticmethod
     def fs(contents="string", hash: Optional[str] = None):
@@ -445,8 +461,7 @@ class Config:
         '''
         c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
-        return Config(lib.irmin_config_fs(h, str.encode(contents)),
-                      contents=c.name)
+        return Config(lib.irmin_config_fs(h, str.encode(c.name)), contents=c)
 
 
 class Repo:
@@ -535,7 +550,7 @@ class Hash:
 
     def __bytes__(self):
         s = lib.irmin_hash_to_string(self.repo._repo, self._hash)
-        return String(s).__bytes__()
+        return Bytes(s)
 
     @staticmethod
     def of_string(repo, s):
@@ -738,7 +753,7 @@ class Tree:
         '''
         Convert to dict using JSON representation
         '''
-        return json.loads(str(self.to_json()))
+        return json.loads(self.to_json())
 
     def __del__(self):
         lib.irmin_tree_free(self._tree)
