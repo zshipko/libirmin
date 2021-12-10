@@ -8,7 +8,7 @@ PathType = Union['Path', str, Sequence[str]]
 
 class String(str):
     _length: int
-    _bytes: bytes
+    _buffer: Any
     _ptr: ffi.CData
 
     def __new__(cls, ptr):
@@ -22,10 +22,10 @@ class String(str):
             cls._ptr = ptr
         length = lib.irmin_string_length(cls._ptr)
         s = lib.irmin_string_data(cls._ptr)
-        b = ffi.unpack(s, length)
-        t = super().__new__(cls, bytes.decode(b, errors="ignore"))
+        b = ffi.buffer(s, length)
+        t = super().__new__(cls, bytes.decode(bytes(b), errors="ignore"))
         t._ptr = cls._ptr
-        t._bytes = b
+        t._buffer = b
         t._length = length
         return t
 
@@ -33,7 +33,7 @@ class String(str):
         return self._length
 
     def __bytes__(self) -> bytes:
-        return self._bytes
+        return bytes(self._buffer)
 
     def to_bytes(self):
         return bytes(self)
@@ -57,7 +57,7 @@ class Bytes(bytes):
             cls._ptr = ptr
         length = lib.irmin_string_length(cls._ptr)
         s = lib.irmin_string_data(cls._ptr)
-        b = ffi.unpack(s, length)
+        b = ffi.buffer(s, length)
         t = super().__new__(cls, b)
         t._ptr = cls._ptr
         t._length = length
