@@ -1,5 +1,5 @@
 from irmin import Config, Store, Commit, Repo, Type, Hash, \
-                  Value, String, log_level
+                  Value, String, Path, log_level
 
 log_level("error")
 
@@ -73,3 +73,7 @@ def test_tree():
 
     assert (store["a", "b", "c"] == {"foo": "bar"})
     assert (store["a", "b", "d"] == {"x": 0})
+
+    paths = store.list(["a", "b"])
+    assert (Path(repo, ["c"]) in paths)
+    assert (Path(repo, ["d"]) in paths)

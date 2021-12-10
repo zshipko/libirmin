@@ -160,41 +160,49 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "value_of_string"
       (ty @-> ptr char @-> int64_t @-> returning value)
       (fun ty s length ->
-        let length = get_length length s in
-        let ty = Root.get_ty ty in
-        let s = string_from_ptr s ~length in
-        match Irmin.Type.(of_string ty) s with
-        | Ok x -> Root.create_value x
-        | Error _ -> null)
+        catch' (fun () ->
+            let length = get_length length s in
+            let ty = Root.get_ty ty in
+            let s = string_from_ptr s ~length in
+            match Irmin.Type.(of_string ty) s with
+            | Ok x -> Root.create_value x
+            | Error (`Msg e) ->
+                let () = Util.error_msg := Some e in
+                null))
 
   let () =
     fn "value_to_bin"
       (ty @-> value @-> returning irmin_string)
       (fun ty value ->
-        let t = Root.get_ty ty in
-        let v = Root.get_value value in
-        let s = Irmin.Type.(unstage (to_bin_string t)) v in
-        Root.create_string s)
+        catch' (fun () ->
+            let t = Root.get_ty ty in
+            let v = Root.get_value value in
+            let s = Irmin.Type.(unstage (to_bin_string t)) v in
+            Root.create_string s))
 
   let () =
     fn "value_of_bin"
       (ty @-> ptr char @-> int64_t @-> returning value)
       (fun ty s length ->
-        let length = get_length length s in
-        let ty = Root.get_ty ty in
-        let s = string_from_ptr s ~length in
-        match Irmin.Type.(unstage (of_bin_string ty)) s with
-        | Ok x -> Root.create_value x
-        | Error _ -> null)
+        catch' (fun () ->
+            let length = get_length length s in
+            let ty = Root.get_ty ty in
+            let s = string_from_ptr s ~length in
+            match Irmin.Type.(unstage (of_bin_string ty)) s with
+            | Ok x -> Root.create_value x
+            | Error (`Msg e) ->
+                let () = Util.error_msg := Some e in
+                null))
 
   let () =
     fn "value_to_json"
       (ty @-> value @-> returning irmin_string)
       (fun ty value ->
-        let t = Root.get_ty ty in
-        let v = Root.get_value value in
-        let s = Irmin.Type.(to_json_string t) v in
-        Root.create_string s)
+        catch' (fun () ->
+            let t = Root.get_ty ty in
+            let v = Root.get_value value in
+            let s = Irmin.Type.(to_json_string t) v in
+            Root.create_string s))
 
   let () =
     fn "value_of_json"
@@ -205,16 +213,19 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let s = string_from_ptr s ~length in
         match Irmin.Type.(of_json_string ty) s with
         | Ok x -> Root.create_value x
-        | Error _ -> null)
+        | Error (`Msg e) ->
+            let () = Util.error_msg := Some e in
+            null)
 
   let () =
     fn "value_equal"
       (ty @-> value @-> value @-> returning bool)
       (fun ty a b ->
-        let ty = Root.get_ty ty in
-        let a = Root.get_value a in
-        let b = Root.get_value b in
-        Irmin.Type.(unstage (equal ty)) a b)
+        catch false (fun () ->
+            let ty = Root.get_ty ty in
+            let a = Root.get_value a in
+            let b = Root.get_value b in
+            Irmin.Type.(unstage (equal ty)) a b))
 
   let () =
     fn "value_compare"
@@ -231,24 +242,29 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "string_new"
       (ptr char @-> int64_t @-> returning irmin_string)
       (fun ptr i ->
-        let i = Int64.to_int i in
-        let length = if i < 0 then strlen ptr else i in
-        let s = string_from_ptr ptr ~length in
-        Root.create_string s)
+        catch' (fun () ->
+            let i = Int64.to_int i in
+            let length = if i < 0 then strlen ptr else i in
+            let s = string_from_ptr ptr ~length in
+            Root.create_string s))
 
   let () =
     fn "string_data"
       (irmin_string @-> returning (ptr char))
       (fun s ->
-        let s : string = Root.get_string s in
-        coerce string (ptr char) s)
+        if is_null s then coerce (ptr void) (ptr char) null
+        else
+          let s : string = Root.get_string s in
+          coerce string (ptr char) s)
 
   let () =
     fn "string_length"
       (irmin_string @-> returning uint64_t)
       (fun s ->
-        let s : string = Root.get_string s in
-        String.length s |> UInt64.of_int)
+        if is_null s then UInt64.zero
+        else
+          let s : string = Root.get_string s in
+          String.length s |> UInt64.of_int)
 
   let () = fn "string_free" (irmin_string @-> returning void) free
 end

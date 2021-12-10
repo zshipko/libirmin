@@ -78,6 +78,10 @@ void test_irmin_store() {
   assert(irmin_string_length(big_string_) == size);
   assert(strncmp(irmin_string_data(big_string_), src, size) == 0);
   free(src);
+
+  // List
+  IrminPathList *paths = irmin_list(store, path1);
+  assert(irmin_path_list_length(paths) == 2);
 }
 
 int main(int argc, char *argv[]) {

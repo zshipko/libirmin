@@ -3,7 +3,7 @@ use crate::internal::*;
 /// Wrapper around String_list Path type
 pub struct Path<'a> {
     pub ptr: *mut IrminPath,
-    repo: UntypedRepo<'a>,
+    pub repo: UntypedRepo<'a>,
 }
 
 impl<'a> Drop for Path<'a> {
@@ -49,6 +49,18 @@ impl<'a> Path<'a> {
         })
     }
 
+    /// Create an empty path
+    pub fn empty<T: Contents>(repo: &'a Repo<T>) -> Result<Path<'a>, Error> {
+        let ptr = unsafe { irmin_path_empty(repo.ptr as *mut _) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+        Ok(Path {
+            ptr,
+            repo: UntypedRepo::new(repo),
+        })
+    }
+
     /// Get path's parent path
     pub fn parent(&self) -> Option<Path<'a>> {
         let ptr = unsafe { irmin_path_parent(self.repo.ptr, self.ptr) };
@@ -77,7 +89,18 @@ impl<'a> Path<'a> {
         }
         Ok(Path {
             ptr,
+            repo: self.repo.clone(),
+        })
+    }
 
+    /// Append two paths
+    pub fn append_path(&self, s: &Path) -> Result<Path<'a>, Error> {
+        let ptr = unsafe { irmin_path_append_path(self.repo.ptr, self.ptr, s.ptr) };
+        if ptr.is_null() {
+            return Err(Error::NullPtr);
+        }
+        Ok(Path {
+            ptr,
             repo: self.repo.clone(),
         })
     }

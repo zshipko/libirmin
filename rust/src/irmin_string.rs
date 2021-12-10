@@ -3,6 +3,12 @@ use crate::internal::*;
 /// IrminString is a wrapper around strings returned by libirmin
 pub struct IrminString(pub *mut crate::bindings::IrminString, pub usize);
 
+impl std::fmt::Debug for IrminString {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        self.as_str().fmt(fmt)
+    }
+}
+
 impl Drop for IrminString {
     fn drop(&mut self) {
         unsafe { irmin_string_free(self.0 as *mut _) }

@@ -87,4 +87,28 @@ impl<'a, T: Contents> Tree<'a, T> {
             Ok(Some(x))
         }
     }
+
+    /// List paths
+    pub fn list(&self, path: &Path) -> Result<Vec<Path>, Error> {
+        let p = unsafe { irmin_tree_list(self.repo.ptr, self.ptr, path.ptr) };
+        if p.is_null() {
+            return Err(Error::NullPtr);
+        }
+        let len = unsafe { irmin_path_list_length(p) };
+        let mut dest = Vec::new();
+        for i in 0..len {
+            let path = unsafe { irmin_path_list_get(p, i) };
+            if path.is_null() {
+                continue;
+            }
+            dest.push(Path {
+                ptr: path,
+                repo: UntypedRepo::new(&self.repo),
+            })
+        }
+
+        unsafe { irmin_path_list_free(p) }
+
+        Ok(dest)
+    }
 }

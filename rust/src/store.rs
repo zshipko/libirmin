@@ -136,7 +136,7 @@ impl<'a, T: Contents> Store<'a, T> {
     }
 
     /// Remove the tree or value associated with the given path
-    pub fn remove(&mut self, path: &Path, info: Info) {
+    pub fn remove(&mut self, path: &Path, info: Info) -> bool {
         unsafe { irmin_remove(self.ptr, path.ptr, info.ptr) }
     }
 
@@ -177,6 +177,30 @@ impl<'a, T: Contents> Store<'a, T> {
     /// Merge with another store
     pub fn merge(&mut self, store: &Store<T>, info: Info) -> bool {
         unsafe { irmin_merge_into(self.ptr, store.ptr, info.ptr) }
+    }
+
+    /// List paths
+    pub fn list(&self, path: &Path) -> Result<Vec<Path>, Error> {
+        let p = unsafe { irmin_list(self.ptr, path.ptr) };
+        if p.is_null() {
+            return Err(Error::NullPtr);
+        }
+        let len = unsafe { irmin_path_list_length(p) };
+        let mut dest = Vec::new();
+        for i in 0..len {
+            let path = unsafe { irmin_path_list_get(p, i) };
+            if path.is_null() {
+                continue;
+            }
+            dest.push(Path {
+                ptr: path,
+                repo: UntypedRepo::new(&self.repo),
+            })
+        }
+
+        unsafe { irmin_path_list_free(p) }
+
+        Ok(dest)
     }
 }
 

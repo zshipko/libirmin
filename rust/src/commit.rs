@@ -36,9 +36,7 @@ impl<'a> Commit<'a> {
                 info.ptr,
             )
         };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
         Ok(Commit {
             ptr,
             repo: UntypedRepo::new(repo),
@@ -60,9 +58,7 @@ impl<'a> Commit<'a> {
     /// Get the hash associated with a commit
     pub fn hash(&self) -> Result<Hash, Error> {
         let ptr = unsafe { irmin_commit_hash(self.repo.ptr, self.ptr) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
         Ok(Hash {
             ptr,
             repo: self.repo.clone(),
@@ -72,9 +68,7 @@ impl<'a> Commit<'a> {
     /// Get commit info
     pub fn info(&self) -> Result<Info, Error> {
         let ptr = unsafe { irmin_commit_info(self.repo.ptr, self.ptr) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
         Ok(Info {
             ptr,
             repo: self.repo.clone(),
@@ -82,19 +76,24 @@ impl<'a> Commit<'a> {
     }
 
     /// Get commit parents
-    pub fn parents(&self) -> Vec<Commit> {
+    pub fn parents(&self) -> Result<Vec<Commit>, Error> {
+        let p = unsafe { irmin_commit_parents(self.repo.ptr, self.ptr) };
+        check!(p);
+        let len = unsafe { irmin_commit_list_length(p) };
         let mut dest = Vec::new();
-        let len = unsafe { irmin_commit_parents_length(self.repo.ptr, self.ptr) };
         for i in 0..len {
-            let ptr = unsafe { irmin_commit_parent(self.repo.ptr, self.ptr, i) };
-            if ptr.is_null() {
+            let c = unsafe { irmin_commit_list_get(p, i) };
+            if c.is_null() {
                 continue;
             }
             dest.push(Commit {
-                ptr,
+                ptr: c,
                 repo: self.repo.clone(),
-            });
+            })
         }
-        dest
+
+        unsafe { irmin_commit_list_free(p) }
+
+        Ok(dest)
     }
 }

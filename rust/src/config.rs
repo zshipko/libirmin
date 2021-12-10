@@ -177,10 +177,7 @@ impl Config<IrminString> {
     pub fn tezos() -> Result<Config<IrminString>, Error> {
         unsafe {
             let ptr = irmin_config_tezos();
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Config {
                 ptr,
                 _t: std::marker::PhantomData,
@@ -196,10 +193,7 @@ impl<T: Contents> Config<T> {
             let hash = HashType::ptr(hash);
             let contents = ContentType::ptr(Some(T::content_type()));
             let ptr = irmin_config_pack(hash as *mut _, contents as *mut _);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Config {
                 ptr,
                 _t: std::marker::PhantomData,
@@ -213,10 +207,7 @@ impl<T: Contents> Config<T> {
             let hash = HashType::ptr(hash);
             let contents = ContentType::ptr(Some(T::content_type()));
             let ptr = irmin_config_mem(hash as *mut _, contents as *mut _);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Config {
                 ptr,
                 _t: std::marker::PhantomData,
@@ -230,10 +221,7 @@ impl<T: Contents> Config<T> {
             let hash = HashType::ptr(hash);
             let contents = ContentType::ptr(Some(T::content_type()));
             let ptr = irmin_config_fs(hash as *mut _, contents as *mut _);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Config {
                 ptr,
                 _t: std::marker::PhantomData,
@@ -246,10 +234,7 @@ impl<T: Contents> Config<T> {
         unsafe {
             let contents = ContentType::ptr(Some(T::content_type()));
             let ptr = irmin_config_git(contents as *mut _);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Config {
                 ptr,
                 _t: std::marker::PhantomData,
@@ -262,10 +247,7 @@ impl<T: Contents> Config<T> {
         unsafe {
             let contents = ContentType::ptr(Some(T::content_type()));
             let ptr = irmin_config_git_mem(contents as *mut _);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
-
+            check!(ptr);
             Ok(Config {
                 ptr,
                 _t: std::marker::PhantomData,
@@ -277,6 +259,7 @@ impl<T: Contents> Config<T> {
     pub fn set(&mut self, key: impl AsRef<str>, ty: &Type, v: &Value) -> Result<bool, Error> {
         let key = cstring(key);
         let x = unsafe { irmin_config_set(self.ptr, key.as_ptr() as *mut _, ty.ptr, v.ptr) };
+        check!(x, false);
         Ok(x)
     }
 
@@ -285,6 +268,7 @@ impl<T: Contents> Config<T> {
         let t = Type::string()?;
         let v = Value::string(root.as_ref().to_str().expect("Invalid path"))?;
         let x = unsafe { irmin_config_set(self.ptr, ROOT_KEY.as_ptr() as *mut _, t.ptr, v.ptr) };
+        check!(x, false);
         Ok(x)
     }
 }
