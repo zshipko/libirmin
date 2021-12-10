@@ -7,8 +7,16 @@
 void test_irmin_value_json() {
   AUTO IrminType *json = irmin_type_json();
   IrminValue *j1 = irmin_value_of_string(json, "{\"a\": 1}", -1);
+
+  IrminString *err0 = irmin_error_msg();
+  assert(err0 == NULL);
   assert(j1 != NULL);
   irmin_value_free(j1);
+
+  IrminValue *j2 = irmin_value_of_string(json, "{\"a\": 1", -1);
+  assert(j2 == NULL);
+  AUTO IrminString *err = irmin_error_msg();
+  assert(err != NULL);
 }
 
 void test_irmin_store() {

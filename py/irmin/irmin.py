@@ -271,15 +271,13 @@ class Value:
         return Value(lib.irmin_value_string(b, len(b)), Type.string())
 
     @staticmethod
-    def json(d: dict) -> Optional['Value']:
+    def json(d: dict) -> 'Value':
         '''
         JSON value from Python dict
         '''
         t = Type.json()
         s = str.encode(json.dumps(d))
         v = lib.irmin_value_of_string(t._type, s, len(s))
-        if v == ffi.NULL:
-            return None
         return Value(v, t)
 
     @staticmethod
@@ -313,13 +311,11 @@ class Value:
         return Bytes(s)
 
     @staticmethod
-    def of_bin(t: Type, b) -> Optional['Value']:
+    def of_bin(t: Type, b) -> 'Value':
         '''
         Decode a value for the given type using Irmin's binary encoding
         '''
         v = lib.irmin_value_of_bin(t._type, b, len(b))
-        if v == ffi.NULL:
-            return None
         return Value(v, t)
 
     def to_string(self) -> String:
@@ -330,7 +326,7 @@ class Value:
         return String(s)
 
     @staticmethod
-    def of_string(t: Type, s: str) -> Optional['Value']:
+    def of_string(t: Type, s: str) -> 'Value':
         '''
         Decode a value for the given type using Irmin's string encoding
         '''
@@ -345,13 +341,11 @@ class Value:
         return Bytes(s)
 
     @staticmethod
-    def of_bytes(t: Type, b) -> Optional['Value']:
+    def of_bytes(t: Type, b) -> 'Value':
         '''
         Same as of_string but accepts Python bytes
         '''
         v = lib.irmin_value_of_string(t._type, b, len(b))
-        if v == ffi.NULL:
-            return None
         return Value(v, t)
 
     def to_json(self) -> String:
@@ -368,13 +362,11 @@ class Value:
         return json.loads(self.to_string())
 
     @staticmethod
-    def of_json(t: Type, b) -> Optional['Value']:
+    def of_json(t: Type, b) -> 'Value':
         '''
         Decode a value using Irmin's JSON decoder
         '''
         v = lib.irmin_value_of_json(t._type, b, len(b))
-        if v == ffi.NULL:
-            return None
         return Value(v, t)
 
     def __bytes__(self):
@@ -547,8 +539,6 @@ class Path:
         else:
             b = str.encode(s)
             ptr = lib.irmin_path_append(self.repo._repo, self._path, b, len(b))
-        if ptr == ffi.NULL:
-            return None
         return Path(self.repo, ptr)
 
     def parent(self):
@@ -557,6 +547,7 @@ class Path:
         '''
         ptr = lib.irmin_path_parent(self.repo._repo, self._path)
         if ptr == ffi.NULL:
+            check(ptr)
             return None
         return Path(self.repo, ptr)
 
@@ -577,14 +568,12 @@ class Path:
         return Path(repo, path)
 
     @staticmethod
-    def of_string(repo: Repo, s: str) -> Optional['Path']:
+    def of_string(repo: Repo, s: str) -> 'Path':
         '''
         Convert from str to Path
         '''
         b = str.encode(s)
         v = lib.irmin_path_of_string(repo._repo, b, len(b))
-        if v == ffi.NULL:
-            return None
         return Path(repo, v)
 
     def __del__(self):
@@ -686,7 +675,7 @@ class Commit:
 
     @staticmethod
     def new(repo: Repo, parents: Sequence['Commit'], tree: 'Tree',
-            info: Info) -> Optional['Commit']:
+            info: Info) -> 'Commit':
         '''
         Create a new commit
         '''
@@ -695,8 +684,6 @@ class Commit:
             lib.irmin_list_add(a, ffi.cast("IrminValue*", p._commit))
         c = lib.irmin_commit_new(repo._repo, a, tree._tree, info._info)
         lib.irmin_list_free(a)
-        if c == ffi.NULL:
-            return None
         return Commit(repo, c)
 
     @staticmethod
@@ -947,6 +934,7 @@ class Store:
         '''
         c = lib.irmin_get_head(self._store)
         if c == ffi.NULL:
+            check(c)
             return None
         return Commit(self.repo, c)
 

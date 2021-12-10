@@ -20,9 +20,7 @@ impl<'a> Hash<'a> {
     ) -> Result<Hash<'a>, Error> {
         let s = s.as_ref();
         let ptr = unsafe { irmin_hash_of_string(repo.ptr, s.as_ptr() as *mut _, s.len() as i64) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
         Ok(Hash {
             ptr,
             repo: UntypedRepo::new(repo),
@@ -30,12 +28,9 @@ impl<'a> Hash<'a> {
     }
 
     /// Convert from Hash to String
-    pub fn to_string<T: Contents>(&self) -> String {
+    pub fn to_string<T: Contents>(&self) -> Result<String, Error> {
         let s = unsafe { irmin_hash_to_string(self.repo.ptr, self.ptr) };
-        if s.is_null() {
-            return String::new();
-        }
-        IrminString::wrap(s).into()
+        IrminString::wrap(s).map(|x| x.into())
     }
 }
 

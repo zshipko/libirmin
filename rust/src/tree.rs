@@ -23,9 +23,7 @@ impl<'a, T: Contents> Tree<'a, T> {
     pub fn new(repo: &'a Repo<T>) -> Result<Tree<'a, T>, Error> {
         unsafe {
             let ptr = irmin_tree_new(repo.ptr);
-            if ptr.is_null() {
-                return Err(Error::NullPtr);
-            }
+            check!(ptr);
             Ok(Tree { ptr, repo })
         }
     }
@@ -63,6 +61,7 @@ impl<'a, T: Contents> Tree<'a, T> {
     pub fn find(&self, path: &Path) -> Result<Option<T>, Error> {
         unsafe {
             let ptr = irmin_tree_find(self.repo.ptr, self.ptr, path.ptr);
+            check!(ptr);
             if ptr.is_null() {
                 return Ok(None);
             }
@@ -77,6 +76,7 @@ impl<'a, T: Contents> Tree<'a, T> {
     pub fn find_tree(&self, path: &Path) -> Result<Option<Tree<T>>, Error> {
         unsafe {
             let ptr = irmin_tree_find_tree(self.repo.ptr, self.ptr, path.ptr);
+            check!(ptr);
             if ptr.is_null() {
                 return Ok(None);
             }

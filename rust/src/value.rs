@@ -38,9 +38,7 @@ impl Value {
         let s = s.as_ref();
         let ptr =
             unsafe { irmin_string_new(s.as_ptr() as *mut _, s.len() as i64) as *mut IrminValue };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
 
         let ty = Type::string()?;
 
@@ -52,9 +50,7 @@ impl Value {
         let s = s.as_ref();
         let ptr =
             unsafe { irmin_string_new(s.as_ptr() as *mut _, s.len() as i64) as *mut IrminValue };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
 
         let ty = Type::string()?;
 
@@ -64,9 +60,7 @@ impl Value {
     /// OCaml int
     pub fn int(i: i64) -> Result<Value, Error> {
         let ptr = unsafe { irmin_value_int(i) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
 
         let ty = Type::int()?;
 
@@ -76,9 +70,7 @@ impl Value {
     /// OCaml float
     pub fn float(i: f64) -> Result<Value, Error> {
         let ptr = unsafe { irmin_value_float(i) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
 
         let ty = Type::float()?;
 
@@ -88,9 +80,7 @@ impl Value {
     /// OCaml bool
     pub fn bool(i: bool) -> Result<Value, Error> {
         let ptr = unsafe { irmin_value_bool(i) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
 
         let ty = Type::bool()?;
 
@@ -102,9 +92,7 @@ impl Value {
         let s = s.as_ref();
 
         let ptr = unsafe { irmin_value_of_string(ty.ptr, s.as_ptr() as *mut _, s.len() as i64) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(ptr);
 
         Ok(Value { ptr, ty })
     }
@@ -112,10 +100,7 @@ impl Value {
     /// Encode a value using Irmin's string encoding
     pub fn to_string(&self) -> Result<IrminString, Error> {
         let s = unsafe { irmin_value_to_string(self.ty.ptr, self.ptr) };
-        if s.is_null() {
-            return Err(Error::NullPtr);
-        }
-        Ok(crate::IrminString::wrap(s))
+        crate::IrminString::wrap(s)
     }
 
     /// Parse a value of the specified type from Irmin's JSON encoding
@@ -123,51 +108,33 @@ impl Value {
         let s = s.as_ref();
 
         let ptr = unsafe { irmin_value_of_json(ty.ptr, s.as_ptr() as *mut _, s.len() as i64) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
-
+        check!(ptr);
         Ok(Value { ptr, ty })
     }
 
     /// Encode a value using Irmin's JSON encoding
     pub fn to_json(&self) -> Result<IrminString, Error> {
         let s = unsafe { irmin_value_to_json(self.ty.ptr, self.ptr) };
-        if s.is_null() {
-            return Err(Error::NullPtr);
-        }
-
-        Ok(crate::IrminString::wrap(s))
+        crate::IrminString::wrap(s)
     }
 
     /// Parse a value of the specified type from Irmin's binary encoding
     pub fn of_bin(ty: Type, s: impl AsRef<[u8]>) -> Result<Value, Error> {
         let s = s.as_ref();
         let ptr = unsafe { irmin_value_of_bin(ty.ptr, s.as_ptr() as *mut _, s.len() as i64) };
-        if ptr.is_null() {
-            return Err(Error::NullPtr);
-        }
-
+        check!(ptr);
         Ok(Value { ptr, ty })
     }
 
     /// Encode a value using Irmin's binary encoding
     pub fn to_bin(&self) -> Result<IrminString, Error> {
         let s = unsafe { irmin_value_to_bin(self.ty.ptr, self.ptr) };
-        if s.is_null() {
-            return Err(Error::NullPtr);
-        }
-
-        Ok(crate::IrminString::wrap(s))
+        crate::IrminString::wrap(s)
     }
 
     /// Get IrminString from string value
     pub fn get_string(&self) -> Result<IrminString, Error> {
         let s = unsafe { irmin_value_get_string(self.ptr) };
-        if s.is_null() {
-            return Err(Error::NullPtr);
-        }
-
-        Ok(crate::IrminString::wrap(s))
+        crate::IrminString::wrap(s)
     }
 }

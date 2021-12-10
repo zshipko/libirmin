@@ -14,7 +14,10 @@ pub fn error_msg() -> Option<IrminString> {
     if s.is_null() {
         return None;
     }
-    Some(IrminString::wrap(s))
+    match IrminString::wrap(s) {
+        Ok(s) => Some(s),
+        Err(_) => None,
+    }
 }
 
 #[macro_use]

@@ -16,17 +16,16 @@ impl Drop for IrminString {
 }
 
 impl IrminString {
-    pub(crate) fn wrap(ptr: *mut crate::bindings::IrminString) -> IrminString {
+    pub(crate) fn wrap(ptr: *mut crate::bindings::IrminString) -> Result<IrminString, Error> {
+        check!(ptr);
         let len = unsafe { irmin_string_length(ptr) };
-        IrminString(ptr, len as usize)
+        Ok(IrminString(ptr, len as usize))
     }
 
     pub fn new(s: impl AsRef<[u8]>) -> Result<IrminString, Error> {
         let len = s.as_ref().len();
         let s = unsafe { irmin_string_new(s.as_ref().as_ptr() as *mut _, len as i64) };
-        if s.is_null() {
-            return Err(Error::NullPtr);
-        }
+        check!(s);
         Ok(IrminString(s, len))
     }
 
