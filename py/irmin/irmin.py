@@ -6,30 +6,46 @@ import json
 PathType = Union['Path', str, Sequence[str]]
 
 
-class String:
+class String(str):
     def __init__(self, ptr):
         if isinstance(ptr, str):
             ptr = str.encode(ptr)
-            self._str = lib.irmin_string_new(ptr, len(ptr))
+            self._ptr = lib.irmin_string_new(ptr, len(ptr))
         elif isinstance(ptr, bytes):
-            self._str = lib.irmin_string_new(ptr, len(ptr))
+            self._ptr = lib.irmin_string_new(ptr, len(ptr))
         else:
-            self._str = ptr
+            self._ptr = ptr
 
-    def __len__(self):
-        s = lib.irmin_string_data(self._str)
-        s = ffi.string(s)
-        return bytes.decode(s)
+    def __len__(self) -> int:
+        return lib.irmin_string_length(self._ptr)
 
-    def __bytes__(self):
-        s = lib.irmin_string_data(self._str)
-        return ffi.string(s)
+    def __bytes__(self) -> bytes:
+        s = lib.irmin_string_data(self._ptr)
+        return ffi.unpack(s, self.__len__())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return bytes.decode(self.__bytes__())
 
+    def __repr__(self) -> str:
+        return str.__repr__(self.__str__())
+
+    def __eq__(self, other):
+        return self.__str__() == str(other)
+
+    def __ne__(self, other):
+        return self.__str__() != str(other)
+
+    def __hash__(self):
+        return str.__hash__(self.__str__())
+
+    def __getitem__(self, x):
+        return str.__getitem__(self.__str__(), x)
+
+    def __setitem__(self, x, y):
+        return str.__setitem__(self.__str__(), x, y)
+
     def __del__(self):
-        lib.irmin_string_free(self._str)
+        lib.irmin_string_free(self._ptr)
 
 
 class Type:
@@ -126,8 +142,7 @@ class Type:
         Type name
         '''
         s = lib.irmin_type_name(self._type)
-        s = String(s)
-        return s.__str__()
+        return String(s)
 
     def __str__(self):
         return self.name()
@@ -147,7 +162,7 @@ class Value:
         '''
         Create new value from pointer and Type
         '''
-        assert (ptr != ffi.NULL)
+        # assert (ptr != ffi.NULL)
         self.type = ty
         self._value = ptr
 
@@ -194,7 +209,7 @@ class Value:
         '''
         string value
         '''
-        b = str.encode(s)
+        b = str.encode(str(s))
         return Value(lib.irmin_value_string(b, len(b)), Type.string())
 
     @staticmethod
@@ -230,14 +245,14 @@ class Value:
         Get string from string value
         '''
         s = lib.irmin_value_get_string(self._value)
-        return String(s).__str__()
+        return String(s)
 
     def get_bytes(self):
         '''
         Get Python bytes from string value
         '''
         s = lib.irmin_value_get_string(self._value)
-        return String(s).__bytes__()
+        return String(s)
 
     def to_bin(self):
         '''
@@ -256,12 +271,12 @@ class Value:
             return None
         return Value(v, t)
 
-    def to_string(self) -> str:
+    def to_string(self) -> String:
         '''
         Encode a value using Irmin's string encoding
         '''
-        b = self.to_bytes()
-        return bytes.decode(b)
+        s = lib.irmin_value_to_string(self.type._type, self._value)
+        return String(s)
 
     @staticmethod
     def of_string(t: Type, s: str) -> Optional['Value']:
@@ -293,13 +308,13 @@ class Value:
         Encode a value using Irmin's JSON encoding
         '''
         s = lib.irmin_value_to_json(self.type._type, self._value)
-        return String(s).__str__()
+        return String(s)
 
     def to_dict(self) -> dict:
         '''
         Encode a value to JSON and parse it into a Python dict
         '''
-        return json.loads(self.to_string())
+        return json.loads(str(self.to_string()))
 
     @staticmethod
     def of_json(t: Type, b) -> Optional['Value']:
@@ -333,11 +348,14 @@ class Contents:
 content_types = {
     "string":
     Contents("string", Value.string, Value.get_string, Type.string(), str),
+    "bytes":
+    Contents("string", Value.bytes, Value.get_bytes, Type.string(), bytes),
     "json":
     Contents("json", Value.json, Value.to_dict, Type.json(), dict),
     "json-value":
-    Contents("json-value", Value.json_value,
-             lambda x: json.loads(Value.to_string(x)), Type.json_value(), Any),
+    Contents("json-value",
+             Value.json_value, lambda x: json.loads(str(Value.to_string(x))),
+             Type.json_value(), Any),
 }
 
 
@@ -567,7 +585,7 @@ class Info:
         Get author
         '''
         s = lib.irmin_info_author(self.repo._repo, self._info)
-        return String(s).__str__()
+        return String(s)
 
     @property
     def message(self) -> str:
@@ -575,7 +593,7 @@ class Info:
         Get message
         '''
         s = lib.irmin_info_message(self.repo._repo, self._info)
-        return String(s).__str__()
+        return String(s)
 
     def __del__(self):
         lib.irmin_info_free(self._info)
@@ -720,7 +738,7 @@ class Tree:
         '''
         Convert to dict using JSON representation
         '''
-        return json.loads(self.to_json())
+        return json.loads(str(self.to_json()))
 
     def __del__(self):
         lib.irmin_tree_free(self._tree)

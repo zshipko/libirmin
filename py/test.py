@@ -1,10 +1,11 @@
-from irmin import Config, Store, Commit, Repo, Type, Hash, Value, log_level
+from irmin import Config, Store, Commit, Repo, Type, Hash, \
+                  Value, String, log_level
 
 log_level("error")
 
 
-def init():
-    config = Config.git_mem(contents='json')
+def init(contents='json'):
+    config = Config.git_mem(contents=contents)
     repo = Repo(config)
     return repo, Store(repo)
 
@@ -25,6 +26,7 @@ def test_irmin_value():
 
     a = Value.bool(True)
     s = Value.to_string(a)
+    assert (type(s) == String)
     assert (s == "true")
 
 
