@@ -38,12 +38,15 @@ def test_bytes():
 
 def test_irmin_head():
     repo, store = init()
+    assert (store.head.parents == [])
     store["test", "a"] = {"x": "foo"}
     c = store.head
+    assert (len(c.parents) == 1)
     store["test", "a"] = {"x": "bar"}
     d = store.head
     if d is not None:
         assert (d.parents[0].hash == c.hash)
+        assert (d.parents[0] == c)
     assert (store["test", "a"] == {"x": "bar"})
     if c is not None:
         store.set_head(c)
