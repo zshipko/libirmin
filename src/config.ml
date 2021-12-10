@@ -24,6 +24,11 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         | None -> null)
 
   let () =
+    fn "error_msg_is_set"
+      (void @-> returning bool)
+      (fun () -> match !Util.error_msg with Some _ -> true | None -> false)
+
+  let () =
     fn "config_pack"
       (string_opt @-> string_opt @-> returning config)
       (fun hash contents ->
