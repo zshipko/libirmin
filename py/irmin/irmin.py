@@ -18,6 +18,7 @@ class String(str):
         elif isinstance(ptr, bytes):
             cls._ptr = lib.irmin_string_new(ptr, len(ptr))
         else:
+            assert (ptr != ffi.NULL)
             cls._ptr = ptr
         length = lib.irmin_string_length(cls._ptr)
         s = lib.irmin_string_data(cls._ptr)
@@ -52,6 +53,7 @@ class Bytes(bytes):
         elif isinstance(ptr, bytes):
             cls._ptr = lib.irmin_string_new(ptr, len(ptr))
         else:
+            assert (ptr != ffi.NULL)
             cls._ptr = ptr
         length = lib.irmin_string_length(cls._ptr)
         s = lib.irmin_string_data(cls._ptr)
@@ -182,7 +184,7 @@ class Value:
         '''
         Create new value from pointer and Type
         '''
-        # assert (ptr != ffi.NULL)
+        assert (ptr != ffi.NULL)
         self.type = ty
         self._value = ptr
 
@@ -471,6 +473,7 @@ class Repo:
         '''
         self.config = config
         self._repo = lib.irmin_repo_new(self.config._config)
+        assert (self._repo != ffi.NULL)
 
     def type(self):
         return self.config.contents.type
@@ -487,13 +490,13 @@ class Path:
         '''
         Create a new path for the given repo using a list of str objects
         '''
-        assert (ptr != ffi.NULL)
         self.repo = repo
         if isinstance(ptr, (tuple, list)):
             a = [ffi.new("char[]", str.encode(arg)) for arg in ptr]
             a.append(ffi.NULL)
             x = ffi.new("char*[]", a)
             ptr = lib.irmin_path(self.repo._repo, x)
+        assert (ptr != ffi.NULL)
         self._path = ptr
 
     def append(self, s):
@@ -693,6 +696,7 @@ class Tree:
             self._tree = t
         else:
             self._tree = lib.irmin_tree_new(self.repo._repo)
+        assert (self._tree != ffi.NULL)
 
     def __eq__(self, other: 'Tree') -> bool:  # type: ignore
         return lib.irmin_tree_equal(self.repo._repo, self._tree, other._tree)
@@ -769,6 +773,7 @@ class Store:
     def __init__(self, repo: Repo, branch: str = "main"):
         self.repo = repo
         self._store = lib.irmin_of_branch(self.repo._repo, str.encode(branch))
+        assert (self._store != ffi.NULL)
 
     def __del__(self):
         lib.irmin_free(self._store)
