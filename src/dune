@@ -3,5 +3,6 @@
  (libraries irmin-unix ctypes.foreign))
 
 (env
-  (dev
-    (flags (:standard -w -unused-var-strict))))
+ (dev
+  (flags
+   (:standard -w -unused-var-strict))))

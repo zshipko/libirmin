@@ -2,4 +2,3 @@
  (name generate)
  (modules generate)
  (libraries cmdliner unix libirmin_bindings))
-

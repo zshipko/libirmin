@@ -123,7 +123,6 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             Irmin.Type.(unstage (equal Store.path_t)) a b))
 
   let () = fn "path_free" (path @-> returning void) free
-
   let () = fn "hash_free" (hash @-> returning void) free
 
   let () =

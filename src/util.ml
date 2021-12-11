@@ -64,19 +64,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       [@@inline]
 
     let get_config x : config = Root.get x
-
     let create_config (r : config) = Root.create r
-
     let set_config ptr (x : config) = Root.set ptr x
-
     let get_ty x : 'a Irmin.Type.t = Root.get x
-
     let create_ty (x : 'a Irmin.Type.t) = Root.create x
-
     let get_value x : 'a = Root.get x
-
     let set_value ptr x = Root.set ptr x
-
     let create_value (x : 'a) = Root.create x
 
     let get_path (type a)
@@ -145,11 +138,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
       Root.create r
 
     let get_string x : string = Root.get x
-
     let set_string ptr (x : string) : unit = Root.set ptr x
-
     let create_string (s : string) = Root.create s
-
     let get_path_list x : unit ptr CArray.t = Root.get x
 
     let create_path_list (type a b)

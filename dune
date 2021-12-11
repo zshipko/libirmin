@@ -1,17 +1,23 @@
 (rule
  (targets irmin_bindings.ml irmin.c irmin.h)
- (deps    (:gen ./gen/generate.exe))
- (action  (run %{gen} .)))
+ (deps
+  (:gen ./gen/generate.exe))
+ (action
+  (run %{gen} .)))
 
 (executable
  (name libirmin)
  (libraries libirmin_bindings)
- (modes (native shared_object))
+ (modes
+  (native shared_object))
  (modules libirmin irmin_bindings)
- (foreign_stubs (language c) (names irmin)))
+ (foreign_stubs
+  (language c)
+  (names irmin)))
 
 (dirs :standard \ rust py target build dist include lib)
 
 (env
-  (dev
-    (flags (:standard -w -unused-var-strict))))
+ (dev
+  (flags
+   (:standard -w -unused-var-strict))))
