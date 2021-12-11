@@ -16,10 +16,16 @@ fn list_path<T: Contents>(store: &Store<T>, path: Path) -> Result<(), Error> {
 }
 
 fn main() -> Result<(), Error> {
-    let args: Vec<_> = std::env::args().skip(1).collect();
+    let args: Vec<_> = std::env::args().collect();
+
+    if args.len() < 2 {
+        println!("usage {} /path/to/tezos/context", &args[0]);
+        return Ok(());
+    }
+
     // Configure an in-memory store with `Json` contents
     let mut config = Config::<IrminString>::tezos()?;
-    config.set_root(&args[0])?;
+    config.set_root(&args[1])?;
 
     // Initialize the repo
     let repo = Repo::new(config)?;
