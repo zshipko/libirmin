@@ -19,7 +19,7 @@ fn main() -> Result<(), Error> {
     let args: Vec<_> = std::env::args().collect();
 
     if args.len() < 2 {
-        println!("usage {} /path/to/tezos/context", &args[0]);
+        println!("usage: {} /path/to/tezos/context", &args[0]);
         return Ok(());
     }
 
