@@ -8,15 +8,20 @@ if len(sys.argv) < 2:
 
 root = sys.argv[1]
 
-config = Config.tezos()
-print(sys.argv[1])
-config.root(sys.argv[1])
+# Configure tezos store
+config = Config.tezos(root=root)
 
+# Initialize the repo
 repo = Repo(config)
+
+# Open the `master` branch
 store = Store(repo, branch="master")
 
 
 def list_path(store, path):
+    '''
+    Prints all content paths
+    '''
     for k in store.list(path):
         p = path.append(k)
         if p in store:
@@ -25,4 +30,5 @@ def list_path(store, path):
             list_path(store, p)
 
 
+# Print contract paths
 list_path(store, ["data", "contracts"])

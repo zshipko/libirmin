@@ -412,13 +412,15 @@ def log_level(level):
 
 
 class Config:
-    def __init__(self, ptr, contents):
+    def __init__(self, ptr, contents, root: Optional[str] = None):
         '''
         Create a new config from IrminConfig pointer and contents name
         '''
         check(ptr)
         self._config = ptr
         self.contents = contents
+        if root is not None:
+            self.root(root)
 
     def root(self, root: str):
         '''
@@ -436,20 +438,23 @@ class Config:
         lib.irmin_config_free(self._config)
 
     @staticmethod
-    def tezos():
+    def tezos(root=None):
         '''
         Configure a tezos context store
         '''
         return Config(lib.irmin_config_tezos(),
-                      contents=content_types['bytes'])
+                      contents=content_types['bytes'],
+                      root=root)
 
     @staticmethod
-    def git(contents="string"):
+    def git(contents="string", root=None):
         '''
         Configure an on-disk git store
         '''
         c = content_types[contents]
-        return Config(lib.irmin_config_git(str.encode(c.name)), contents=c)
+        return Config(lib.irmin_config_git(str.encode(c.name)),
+                      contents=c,
+                      root=root)
 
     @staticmethod
     def git_mem(contents="string"):
@@ -460,13 +465,15 @@ class Config:
         return Config(lib.irmin_config_git_mem(str.encode(c.name)), contents=c)
 
     @staticmethod
-    def pack(contents="string", hash: Optional[str] = None):
+    def pack(contents="string", hash: Optional[str] = None, root=None):
         '''
         Configure an Irmin_pack store
         '''
         c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
-        return Config(lib.irmin_config_pack(h, str.encode(c.name)), contents=c)
+        return Config(lib.irmin_config_pack(h, str.encode(c.name)),
+                      contents=c,
+                      root=root)
 
     @staticmethod
     def mem(contents="string", hash: Optional[str] = None):
@@ -478,13 +485,15 @@ class Config:
         return Config(lib.irmin_config_mem(h, str.encode(c.name)), contents=c)
 
     @staticmethod
-    def fs(contents="string", hash: Optional[str] = None):
+    def fs(contents="string", hash: Optional[str] = None, root=None):
         '''
         Configure store using Irmin_fs
         '''
         c = content_types[contents]
         h = ffi.NULL if hash is None else str.encode(hash)
-        return Config(lib.irmin_config_fs(h, str.encode(c.name)), contents=c)
+        return Config(lib.irmin_config_fs(h, str.encode(c.name)),
+                      contents=c,
+                      root=root)
 
 
 class Repo:
