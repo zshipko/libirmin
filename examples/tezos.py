@@ -31,4 +31,4 @@ def list_path(store, path):
 
 
 # Print contract paths
-list_path(store, ["data", "contracts"])
+list_path(store, Path(store.repo, ["data", "contracts"]))

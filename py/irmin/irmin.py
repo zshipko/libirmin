@@ -520,6 +520,7 @@ class Path:
         '''
         Create a new path for the given repo using a list of str objects
         '''
+        self._path = None
         self.repo = repo
         if isinstance(ptr, (tuple, list)):
             a = [ffi.new("char[]", str.encode(arg)) for arg in ptr]
@@ -529,7 +530,9 @@ class Path:
         elif isinstance(ptr, str):
             b = str.encode(ptr)
             ptr = lib.irmin_path_of_string(repo._repo, b, len(b))
-        check(ptr)
+        elif not isinstance(ptr, ffi.CData):
+            raise IrminException("Invalid path type: " + str(type(ptr)))
+        # check(ptr)
         self._path = ptr
 
     @staticmethod
@@ -544,13 +547,10 @@ class Path:
         '''
         Append to a path, returning a new path
         '''
-        if isinstance(s, (Path, tuple, list)):
-            path = Path.wrap(self.repo, s)
-            ptr = lib.irmin_path_append_path(self.repo._repo, self._path,
-                                             path._path)
-        else:
-            b = str.encode(s)
-            ptr = lib.irmin_path_append(self.repo._repo, self._path, b, len(b))
+        path = Path.wrap(self.repo, s)
+        ptr = lib.irmin_path_append_path(self.repo._repo, self._path,
+                                         path._path)
+
         return Path(self.repo, ptr)
 
     def parent(self):

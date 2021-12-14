@@ -6,7 +6,7 @@ fn list_path<T: Contents>(store: &Store<T>, path: Path) -> Result<(), Error> {
 
         // If the store has contents at `p` then print the path
         if store.mem(&p) {
-            println!("{}", path.to_string()?);
+            println!("{}", p.to_string()?);
         } else {
             list_path(store, p)?;
         }
