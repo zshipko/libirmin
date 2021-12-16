@@ -78,11 +78,10 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
                    (fun x ->
                      Store.Commit.of_key repo x >|= function
                      | None -> None
-                     | Some x -> Some (Root.create_commit (module Store) x))
+                     | Some x -> Some x)
                    parents)
             in
-            let a = CArray.of_list Types.commit parents in
-            Root.create_commit_list (module Store) a))
+            Root.create_commit_list (module Store) parents))
 
   let () =
     fn "commit_equal"

@@ -56,6 +56,7 @@ def test_irmin_head():
         assert (head.hash == c.hash)
         assert (Hash.of_string(repo, str(head.hash)) == head.hash)
         assert (Commit.of_hash(repo, head.hash) == c)
+    assert (repo.branches == ["main"])
 
 
 def test_tree():

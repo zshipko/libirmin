@@ -15,6 +15,21 @@ impl<T: Contents> Repo<T> {
             Ok(Repo { config, ptr })
         }
     }
+
+    pub fn branches(&self) -> Result<Vec<IrminString>, Error> {
+        let b = unsafe { irmin_repo_branches(self.ptr) };
+        check!(b);
+        let mut dest = Vec::new();
+        let n = unsafe { irmin_branch_list_length(b) };
+        for i in 0..n {
+            let p = unsafe { irmin_branch_list_get(b, i) };
+            if let Ok(s) = IrminString::wrap(p) {
+                dest.push(s);
+            }
+        }
+        unsafe { irmin_branch_list_free(b) };
+        Ok(dest)
+    }
 }
 
 impl<T: Contents> Drop for Repo<T> {

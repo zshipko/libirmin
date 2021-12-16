@@ -140,19 +140,36 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     let get_string x : string = Root.get x
     let set_string ptr (x : string) : unit = Root.set ptr x
     let create_string (s : string) = Root.create s
+    let get_branch_list x : unit ptr CArray.t = Root.get x
+
+    let create_branch_list (type a b)
+        (module S : Irmin.Generic_key.S
+          with type Schema.Branch.t = a
+           and type tree = b) (x : S.Branch.t list) =
+      let x =
+        CArray.of_list (ptr void)
+          (List.map
+             (fun b -> create_string (Irmin.Type.to_string S.Branch.t b))
+             x)
+      in
+      Root.create x
+
     let get_path_list x : unit ptr CArray.t = Root.get x
 
     let create_path_list (type a b)
         (module S : Irmin.Generic_key.S
           with type Schema.Path.t = a
-           and type tree = b) (x : unit ptr CArray.t) =
+           and type tree = b) (x : S.Path.t list) =
+      let x = CArray.of_list (ptr void) (List.map (create_path (module S)) x) in
       Root.create x
 
     let get_commit_list x : unit ptr CArray.t = Root.get x
 
     let create_commit_list (type a)
-        (module S : Irmin.Generic_key.S with type commit = a)
-        (x : unit ptr CArray.t) =
+        (module S : Irmin.Generic_key.S with type commit = a) (x : a list) =
+      let x =
+        CArray.of_list (ptr void) (List.map (create_commit (module S)) x)
+      in
       Root.create x
   end
 end

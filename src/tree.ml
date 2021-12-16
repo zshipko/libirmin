@@ -137,14 +137,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             let tree = Root.get_tree (module Store) tree in
             let path : Store.path = Root.get_path (module Store) path in
             let items = run (Store.Tree.list tree path) in
-            let items =
-              List.map
-                (fun (k, _v) ->
-                  Root.create_path (module Store) @@ Store.Path.v [ k ])
-                items
-            in
-            let a = CArray.of_list Types.path items in
-            Root.create_path_list (module Store) a))
+            let items = List.map (fun (k, _v) -> Store.Path.v [ k ]) items in
+            Root.create_path_list (module Store) items))
 
   let () = fn "tree_free" (tree @-> returning void) free
 end

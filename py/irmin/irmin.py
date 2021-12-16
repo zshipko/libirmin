@@ -289,6 +289,24 @@ class Value:
         s = str.encode(json.dumps(d))
         return Value(lib.irmin_value_of_string(t._type, s, len(s)), t)
 
+    def wrap(x: Any):
+        if isinstance(x, bool):
+            return Value.bool(x)
+        elif isinstance(x, int):
+            return Value.int(x)
+        elif isinstance(x, float):
+            return Value.float(x)
+        elif isinstance(x, str):
+            return Value.string(x)
+        elif isinstance(x, bytes):
+            return Value.bytes(x)
+        elif isinstance(x, dict):
+            return Value.json(x)
+        elif isinstance(x, Value):
+            return x
+        else:
+            raise TypeError("Unknown Value type")
+
     def get_string(self) -> str:
         '''
         Get string from string value
@@ -430,7 +448,8 @@ class Config:
         lib.irmin_config_set(self._config, b"root", value.type._type,
                              value._value)
 
-    def __setitem__(self, key: str, value: Value):
+    def __setitem__(self, key: str, value: Any):
+        value = Value.wrap(value)
         lib.irmin_config_set(self._config, str.encode(key), value.type._type,
                              value._value)
 
@@ -510,6 +529,16 @@ class Repo:
 
     def irmin_type(self):
         return self.config.contents.irmin_type
+
+    @property
+    def branches(self):
+        b = lib.irmin_repo_branches(self._repo)
+        n = lib.irmin_branch_list_length(b)
+        dest = []
+        for i in range(n):
+            dest.append(String(lib.irmin_branch_list_get(b, i)))
+        lib.irmin_branch_list_free(b)
+        return dest
 
     def __del__(self):
         lib.irmin_repo_free(self._repo)
@@ -685,15 +714,16 @@ class Commit:
 
     @staticmethod
     def new(repo: Repo, parents: Sequence['Commit'], tree: 'Tree',
-            info: Info) -> 'Commit':
+            info: Info) -> Optional['Commit']:
         '''
         Create a new commit
         '''
-        a = lib.irmin_list_new()
-        for p in parents:
-            lib.irmin_list_add(a, ffi.cast("IrminValue*", p._commit))
-        c = lib.irmin_commit_new(repo._repo, a, tree._tree, info._info)
-        lib.irmin_list_free(a)
+        n = len(parents)
+        a = [ffi.new("IrminCommit*", arg._commit) for arg in parents]
+        b = ffi.new("IrminCommit*[]", a)
+        c = lib.irmin_commit_new(repo._repo, b, n, tree._tree, info._info)
+        if c == ffi.NULL:
+            return None
         return Commit(repo, c)
 
     @staticmethod
