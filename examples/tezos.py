@@ -33,7 +33,6 @@ def list_path(store, path):
         if p in store:
             print(p)
         else:
-            print(p)
             list_path(store, p)
 
 
