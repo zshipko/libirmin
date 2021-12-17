@@ -42,7 +42,7 @@ fn main() -> Result<(), Error> {
     let store = Store::of_branch(&repo, &chain_id)?;
 
     // List content paths
-    let path = Path::new(&repo, &["data", "contracts"])?;
+    let path = repo.path(&["data", "contracts"])?;
     list_path(&store, path)?;
 
     Ok(())

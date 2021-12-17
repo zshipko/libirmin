@@ -540,6 +540,18 @@ class Repo:
         lib.irmin_branch_list_free(b)
         return dest
 
+    def path(self, p):
+        return Path.wrap(self, p)
+
+    def info(self, author, message):
+        return Info(self, author, message)
+
+    def commit(self, parents: Sequence['Commit'], tree: 'Tree', info: 'Info'):
+        return Commit.new(self, parents, tree, info)
+
+    def tree(self):
+        return Tree(self)
+
     def __del__(self):
         lib.irmin_repo_free(self._repo)
 
@@ -561,7 +573,7 @@ class Path:
             ptr = lib.irmin_path_of_string(repo._repo, b, len(b))
         elif not isinstance(ptr, ffi.CData):
             raise IrminException("Invalid path type: " + str(type(ptr)))
-        # check(ptr)
+        check(ptr)
         self._path = ptr
 
     @staticmethod
@@ -649,23 +661,18 @@ class Hash:
 
 
 class Info:
-    def __init__(self, repo: Repo, i):
+    def __init__(self, repo: Repo, i, message=None):
         '''
         Create info from repo and IrminInfo pointer
         '''
+        if isinstance(i, str) and isinstance(message, str):
+            i = lib.irmin_info_new(repo._repo, str.encode(i),
+                                   str.encode(message))
+        elif not isinstance(i, ffi.CData):
+            raise TypeError("Invalid pointer in Info.__init__")
         check(i)
         self.repo = repo
         self._info = i
-
-    @staticmethod
-    def new(repo, author, message):
-        '''
-        Create new Info object
-        '''
-        return Info(
-            repo,
-            lib.irmin_info_new(repo._repo, str.encode(author),
-                               str.encode(message)))
 
     @property
     def date(self) -> int:
@@ -711,6 +718,11 @@ class Commit:
     def __eq__(self, other: 'Commit') -> bool:  # type: ignore
         return lib.irmin_commit_equal(self.repo._repo, self._commit,
                                       other._commit)
+
+    @property
+    def info(self) -> Info:
+        return Info(self.repo,
+                    ffi.irmin_commit_info(self.repo._repo, self._commit))
 
     @staticmethod
     def new(repo: Repo, parents: Sequence['Commit'], tree: 'Tree',
@@ -895,7 +907,7 @@ class Store:
         return lib.irmin_mem(self._store, path._path)
 
     def info(self, author: str = "", message: str = "") -> Info:
-        return Info.new(self.repo, author, message)
+        return Info(self.repo, author, message)
 
     def set(self, path: PathType, value, info: Optional[Info] = None):
         '''

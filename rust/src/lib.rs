@@ -92,7 +92,7 @@ mod tests {
         let repo = Repo::new(config)?;
         let mut store = Store::new(&repo)?;
 
-        let info = Info::new(&repo, "irmin", "set")?;
+        let info = repo.info("irmin", "set")?;
         let path = Path::from_str(&repo, "foo/bar")?;
         let value = serde_json::json!({
             "a": 1,
@@ -113,7 +113,7 @@ mod tests {
         let x = store.find_tree(&path1)?;
         assert!(x.is_some());
 
-        let path2 = Path::new(&repo, &["bar"])?;
+        let path2 = repo.path(&["bar"])?;
         let y = x.unwrap().find(&path2)?;
         assert!(y.unwrap() == value);
 
@@ -138,9 +138,9 @@ mod tests {
         let config = Config::<String>::git_mem()?;
         let repo = Repo::new(config)?;
 
-        let mut tree = Tree::new(&repo)?;
-        let abc = Path::new(&repo, &["a", "b", "c"])?;
-        let ab = Path::new(&repo, &["a", "b"])?;
+        let mut tree = repo.tree()?;
+        let abc = repo.path(&["a", "b", "c"])?;
+        let ab = repo.path(&["a", "b"])?;
 
         let v = String::from("123");
         tree.add(&abc, &v)?;

@@ -30,6 +30,27 @@ impl<T: Contents> Repo<T> {
         unsafe { irmin_branch_list_free(b) };
         Ok(dest)
     }
+
+    pub fn path(&self, s: &[impl AsRef<str>]) -> Result<Path, Error> {
+        Path::new(self, s)
+    }
+
+    pub fn commit<'a>(
+        &'a self,
+        parents: impl AsRef<[&'a Commit<'a>]>,
+        tree: &Tree<T>,
+        info: Info,
+    ) -> Result<Commit<'a>, Error> {
+        Commit::new(self, parents, tree, info)
+    }
+
+    pub fn tree(&self) -> Result<Tree<T>, Error> {
+        Tree::new(self)
+    }
+
+    pub fn info(&self, author: impl AsRef<str>, message: impl AsRef<str>) -> Result<Info, Error> {
+        Info::new(self, author, message)
+    }
 }
 
 impl<T: Contents> Drop for Repo<T> {

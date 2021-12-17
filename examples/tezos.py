@@ -10,7 +10,7 @@ root = sys.argv[1]
 
 # Configure tezos store
 config = Config.tezos(root=root)
-config["readonly"] = Value.bool(True)
+config["readonly"] = True
 
 # Initialize the repo
 repo = Repo(config)

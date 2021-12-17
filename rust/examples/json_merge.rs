@@ -11,7 +11,7 @@ fn main() -> Result<(), Error> {
     let mut store = Store::new(&repo)?;
 
     // Create the path to store values at
-    let path = Path::new(&repo, &["foo", "bar"])?;
+    let path = repo.path(&["foo", "bar"])?;
 
     // Store a value in the main branch
     let a = json!({
@@ -59,10 +59,10 @@ fn main() -> Result<(), Error> {
     )?;
 
     // Merge `branch1` into `main`
-    assert!(store.merge(&branch1, Info::new(&repo, "example", "merge branch1")?));
+    assert!(store.merge(&branch1, repo.info("example", "merge branch1")?));
 
     // Merge `branch2` into `main`
-    assert!(store.merge(&branch2, Info::new(&repo, "example", "merge branch2")?));
+    assert!(store.merge(&branch2, repo.info("example", "merge branch2")?));
 
     // Check that the contents have been merged correctly
     let v = store.find(&path)?.unwrap();

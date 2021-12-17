@@ -79,5 +79,5 @@ def test_tree():
     assert (store["a", "b", "d"] == {"x": 0})
 
     paths = store.list(["a", "b"])
-    assert (Path(repo, ["c"]) in paths)
-    assert (Path(repo, ["d"]) in paths)
+    assert (repo.path(["c"]) in paths)
+    assert (repo.path(["d"]) in paths)
