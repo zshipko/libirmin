@@ -89,7 +89,7 @@ void test_irmin_store() {
 
   // List
   IrminPathList *paths = irmin_list(store, path1);
-  assert(irmin_path_list_length(paths) == 2);
+  assert(irmin_path_list_length(repo, paths) == 2);
 }
 
 int main(int argc, char *argv[]) {

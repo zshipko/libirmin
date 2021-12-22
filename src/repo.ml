@@ -28,31 +28,29 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "branch_list_length"
-      (branch_list @-> returning uint64_t)
-      (fun p ->
+      (repo @-> branch_list @-> returning uint64_t)
+      (fun (type repo) repo p ->
         catch UInt64.zero (fun () ->
-            let arr = Root.get_branch_list p in
-            UInt64.of_int (CArray.length arr)))
+            let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+              Root.get_repo repo
+            in
+            let arr = Root.get_branch_list (module Store) p in
+            UInt64.of_int (Array.length arr)))
 
   let () =
     fn "branch_list_get"
-      (branch_list @-> uint64_t @-> returning irmin_string)
-      (fun p i ->
+      (repo @-> branch_list @-> uint64_t @-> returning irmin_string)
+      (fun (type repo) repo p i ->
+        let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+          Root.get_repo repo
+        in
         let i = UInt64.to_int i in
-        let arr = Root.get_branch_list p in
-        if i >= CArray.length arr then null
+        let arr = Root.get_branch_list (module Store) p in
+        if i >= Array.length arr then null
         else
-          let x = CArray.unsafe_get arr i in
-          let s : string = Ctypes.Root.get x in
-          Ctypes.Root.create s)
+          let x = Array.unsafe_get arr i in
+          Root.create_string (Irmin.Type.to_string Store.Branch.t x))
 
-  let () =
-    fn "branch_list_free"
-      (branch_list @-> returning void)
-      (fun p ->
-        let arr = Root.get_branch_list p in
-        CArray.iter (fun x -> free x) arr;
-        free p)
-
+  let () = fn "branch_list_free" (branch_list @-> returning void) free
   let () = fn "repo_free" (repo @-> returning void) free
 end

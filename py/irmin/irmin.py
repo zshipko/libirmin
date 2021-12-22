@@ -533,10 +533,10 @@ class Repo:
     @property
     def branches(self):
         b = lib.irmin_repo_branches(self._repo)
-        n = lib.irmin_branch_list_length(b)
+        n = lib.irmin_branch_list_length(self._repo, b)
         dest = []
         for i in range(n):
-            dest.append(String(lib.irmin_branch_list_get(b, i)))
+            dest.append(String(lib.irmin_branch_list_get(self._repo, b, i)))
         lib.irmin_branch_list_free(b)
         return dest
 
@@ -754,8 +754,11 @@ class Commit:
         Commit parents
         '''
         list = lib.irmin_commit_parents(self.repo._repo, self._commit)
-        n = lib.irmin_commit_list_length(list)
-        d = [lib.irmin_commit_list_get(list, i) for i in range(n)]
+        n = lib.irmin_commit_list_length(self.repo._repo, list)
+        d = [
+            lib.irmin_commit_list_get(self.repo._repo, list, i)
+            for i in range(n)
+        ]
         d = [Commit(self.repo, x) for x in d if x != ffi.NULL]
         lib.irmin_commit_list_free(list)
         return d
@@ -849,10 +852,10 @@ class Tree:
     def list(self, path: PathType) -> List[Path]:
         path = Path.wrap(self.repo, path)
         paths = lib.irmin_tree_list(self.repo._repo, self._tree, path._path)
-        n = lib.irmin_path_list_length(paths)
+        n = lib.irmin_path_list_length(self.repo._repo, paths)
         dest = []
         for i in range(n):
-            p = lib.irmin_path_list_get(paths, i)
+            p = lib.irmin_path_list_get(self.repo._repo, paths, i)
             if p == ffi.NULL:
                 continue
             dest.append(Path(self.repo, p))
@@ -1041,10 +1044,10 @@ class Store:
     def list(self, path: PathType) -> List[Path]:
         path = Path.wrap(self.repo, path)
         paths = lib.irmin_list(self._store, path._path)
-        n = lib.irmin_path_list_length(paths)
+        n = lib.irmin_path_list_length(self.repo._repo, paths)
         dest = []
         for i in range(n):
-            p = lib.irmin_path_list_get(paths, i)
+            p = lib.irmin_path_list_get(self.repo._repo, paths, i)
             if p == ffi.NULL:
                 continue
             dest.append(Path(self.repo, p))

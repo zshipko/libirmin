@@ -512,57 +512,55 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "path_list_length"
-      (path_list @-> returning uint64_t)
-      (fun p ->
+      (repo @-> path_list @-> returning uint64_t)
+      (fun (type repo) repo p ->
         catch UInt64.zero (fun () ->
-            let arr = Root.get_path_list p in
-            UInt64.of_int (CArray.length arr)))
+            let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+              Root.get_repo repo
+            in
+            let arr = Root.get_path_list (module Store) p in
+            UInt64.of_int (Array.length arr)))
 
   let () =
     fn "commit_list_length"
-      (commit_list @-> returning uint64_t)
-      (fun p ->
+      (repo @-> commit_list @-> returning uint64_t)
+      (fun (type repo) repo p ->
         catch UInt64.zero (fun () ->
-            let arr = Root.get_commit_list p in
-            UInt64.of_int (CArray.length arr)))
+            let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+              Root.get_repo repo
+            in
+            let arr = Root.get_commit_list (module Store) p in
+            UInt64.of_int (Array.length arr)))
 
   let () =
     fn "path_list_get"
-      (path_list @-> uint64_t @-> returning path)
-      (fun p i ->
+      (repo @-> path_list @-> uint64_t @-> returning path)
+      (fun (type repo) repo p i ->
+        let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+          Root.get_repo repo
+        in
         let i = UInt64.to_int i in
-        let arr = Root.get_path_list p in
-        if i >= CArray.length arr then null
+        let arr = Root.get_path_list (module Store) p in
+        if i >= Array.length arr then null
         else
-          let x = CArray.unsafe_get arr i in
-          Ctypes.Root.get x |> Ctypes.Root.create)
+          let x = Array.unsafe_get arr i in
+          Root.create_path (module Store) x)
 
   let () =
     fn "commit_list_get"
-      (commit_list @-> uint64_t @-> returning commit)
-      (fun p i ->
+      (repo @-> commit_list @-> uint64_t @-> returning commit)
+      (fun (type repo) repo p i ->
+        let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+          Root.get_repo repo
+        in
         let i = UInt64.to_int i in
-        let arr = Root.get_commit_list p in
-        if i >= CArray.length arr then null
+        let arr = Root.get_commit_list (module Store) p in
+        if i >= Array.length arr then null
         else
-          let x = CArray.unsafe_get arr i in
-          Ctypes.Root.get x |> Ctypes.Root.create)
+          let x = Array.unsafe_get arr i in
+          Root.create_commit (module Store) x)
 
-  let () =
-    fn "path_list_free"
-      (path_list @-> returning void)
-      (fun p ->
-        let arr = Root.get_path_list p in
-        CArray.iter (fun x -> free x) arr;
-        free p)
-
-  let () =
-    fn "commit_list_free"
-      (commit_list @-> returning void)
-      (fun p ->
-        let arr = Root.get_commit_list p in
-        CArray.iter (fun x -> free x) arr;
-        free p)
-
+  let () = fn "path_list_free" (path_list @-> returning void) free
+  let () = fn "commit_list_free" (commit_list @-> returning void) free
   let () = fn "free" (store @-> returning void) free
 end
