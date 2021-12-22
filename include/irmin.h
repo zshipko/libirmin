@@ -99,91 +99,91 @@ IrminConfig* irmin_config_mem(char* x1416, char* x1415);
 void irmin_config_free(IrminConfig* x1417);
 _Bool irmin_config_set(IrminConfig* x1421, char* x1420, IrminType* x1419,
                        IrminValue* x1418);
-IrminPath* irmin_path(IrminRepo* x1423, char** x1422);
-IrminPath* irmin_path_of_string(IrminRepo* x1426, char* x1425, int64_t x1424);
-IrminPath* irmin_path_empty(IrminRepo* x1427);
-IrminString* irmin_path_to_string(IrminRepo* x1429, IrminPath* x1428);
-IrminPath* irmin_path_parent(IrminRepo* x1431, IrminPath* x1430);
-IrminPath* irmin_path_append(IrminRepo* x1435, IrminPath* x1434, char* x1433,
-                             int64_t x1432);
-IrminPath* irmin_path_append_path(IrminRepo* x1438, IrminPath* x1437,
-                                  IrminPath* x1436);
-_Bool irmin_path_equal(IrminRepo* x1441, IrminPath* x1440, IrminPath* x1439);
-void irmin_path_free(IrminPath* x1442);
-void irmin_hash_free(IrminHash* x1443);
-_Bool irmin_hash_equal(IrminRepo* x1446, IrminHash* x1445, IrminHash* x1444);
-IrminHash* irmin_contents_hash(IrminRepo* x1448, IrminValue* x1447);
-IrminValue* irmin_contents_of_hash(IrminRepo* x1450, IrminHash* x1449);
-IrminString* irmin_hash_to_string(IrminRepo* x1452, IrminHash* x1451);
-IrminHash* irmin_hash_of_string(IrminRepo* x1455, char* x1454, int64_t x1453);
-Irmin* irmin_main(IrminRepo* x1456);
-Irmin* irmin_of_branch(IrminRepo* x1458, char* x1457);
-IrminCommit* irmin_get_head(Irmin* x1459);
-void irmin_set_head(Irmin* x1461, IrminCommit* x1460);
-_Bool irmin_fast_forward(Irmin* x1463, IrminCommit* x1462);
-_Bool irmin_merge_with_branch(Irmin* x1466, char* x1465, IrminInfo* x1464);
-_Bool irmin_merge_with_commit(Irmin* x1469, IrminCommit* x1468,
-                              IrminInfo* x1467);
-_Bool irmin_merge_into(Irmin* x1472, Irmin* x1471, IrminInfo* x1470);
-_Bool irmin_set(Irmin* x1476, IrminPath* x1475, IrminValue* x1474,
-                IrminInfo* x1473);
-_Bool irmin_test_and_set(Irmin* x1481, IrminPath* x1480, IrminValue* x1479,
-                         IrminValue* x1478, IrminInfo* x1477);
-_Bool irmin_test_and_set_tree(Irmin* x1486, IrminPath* x1485,
-                              IrminTree* x1484, IrminTree* x1483,
-                              IrminInfo* x1482);
-_Bool irmin_set_tree(Irmin* x1490, IrminPath* x1489, IrminTree* x1488,
-                     IrminInfo* x1487);
-IrminValue* irmin_find(Irmin* x1492, IrminPath* x1491);
-IrminTree* irmin_find_tree(Irmin* x1494, IrminPath* x1493);
-_Bool irmin_remove(Irmin* x1497, IrminPath* x1496, IrminInfo* x1495);
-_Bool irmin_mem(Irmin* x1499, IrminPath* x1498);
-_Bool irmin_mem_tree(Irmin* x1501, IrminPath* x1500);
-IrminPathList* irmin_list(Irmin* x1503, IrminPath* x1502);
-uint64_t irmin_path_list_length(IrminRepo* x1505, IrminPathList* x1504);
-uint64_t irmin_commit_list_length(IrminRepo* x1507, IrminCommitList* x1506);
-IrminPath* irmin_path_list_get(IrminRepo* x1510, IrminPathList* x1509,
-                               uint64_t x1508);
-IrminCommit* irmin_commit_list_get(IrminRepo* x1513, IrminCommitList* x1512,
-                                   uint64_t x1511);
-void irmin_path_list_free(IrminPathList* x1514);
-void irmin_commit_list_free(IrminCommitList* x1515);
-void irmin_free(Irmin* x1516);
-IrminTree* irmin_tree_new(IrminRepo* x1517);
-IrminTree* irmin_tree_clone(IrminRepo* x1519, IrminTree* x1518);
-_Bool irmin_tree_mem(IrminRepo* x1522, IrminTree* x1521, IrminPath* x1520);
-_Bool irmin_tree_mem_tree(IrminRepo* x1525, IrminTree* x1524,
-                          IrminPath* x1523);
-IrminValue* irmin_tree_find(IrminRepo* x1528, IrminTree* x1527,
-                            IrminPath* x1526);
-IrminTree* irmin_tree_find_tree(IrminRepo* x1531, IrminTree* x1530,
-                                IrminPath* x1529);
-void irmin_tree_add(IrminRepo* x1535, IrminTree* x1534, IrminPath* x1533,
-                    IrminValue* x1532);
-void irmin_tree_add_tree(IrminRepo* x1539, IrminTree* x1538,
-                         IrminPath* x1537, IrminTree* x1536);
-void irmin_tree_remove(IrminRepo* x1542, IrminTree* x1541, IrminPath* x1540);
-_Bool irmin_tree_equal(IrminRepo* x1545, IrminTree* x1544, IrminTree* x1543);
-IrminPathList* irmin_tree_list(IrminRepo* x1548, IrminTree* x1547,
-                               IrminPath* x1546);
-void irmin_tree_free(IrminTree* x1549);
-IrminRepo* irmin_repo_new(IrminConfig* x1550);
-IrminBranchList* irmin_repo_branches(IrminRepo* x1551);
-uint64_t irmin_branch_list_length(IrminRepo* x1553, IrminBranchList* x1552);
-IrminString* irmin_branch_list_get(IrminRepo* x1556, IrminBranchList* x1555,
-                                   uint64_t x1554);
-void irmin_branch_list_free(IrminBranchList* x1557);
-void irmin_repo_free(IrminRepo* x1558);
-IrminInfo* irmin_commit_info(IrminRepo* x1560, IrminCommit* x1559);
-IrminHash* irmin_commit_hash(IrminRepo* x1562, IrminCommit* x1561);
-IrminCommit* irmin_commit_of_hash(IrminRepo* x1564, IrminHash* x1563);
-IrminCommit* irmin_commit_new(IrminRepo* x1569, IrminCommit** x1568,
-                              uint64_t x1567, IrminTree* x1566,
-                              IrminInfo* x1565);
-IrminCommitList* irmin_commit_parents(IrminRepo* x1571, IrminCommit* x1570);
-_Bool irmin_commit_equal(IrminRepo* x1574, IrminCommit* x1573,
-                         IrminCommit* x1572);
-void irmin_commit_free(IrminCommit* x1575);
+Irmin* irmin_main(IrminRepo* x1422);
+Irmin* irmin_of_branch(IrminRepo* x1424, char* x1423);
+IrminCommit* irmin_get_head(Irmin* x1425);
+void irmin_set_head(Irmin* x1427, IrminCommit* x1426);
+_Bool irmin_fast_forward(Irmin* x1429, IrminCommit* x1428);
+_Bool irmin_merge_with_branch(Irmin* x1432, char* x1431, IrminInfo* x1430);
+_Bool irmin_merge_with_commit(Irmin* x1435, IrminCommit* x1434,
+                              IrminInfo* x1433);
+_Bool irmin_merge_into(Irmin* x1438, Irmin* x1437, IrminInfo* x1436);
+_Bool irmin_set(Irmin* x1442, IrminPath* x1441, IrminValue* x1440,
+                IrminInfo* x1439);
+_Bool irmin_test_and_set(Irmin* x1447, IrminPath* x1446, IrminValue* x1445,
+                         IrminValue* x1444, IrminInfo* x1443);
+_Bool irmin_test_and_set_tree(Irmin* x1452, IrminPath* x1451,
+                              IrminTree* x1450, IrminTree* x1449,
+                              IrminInfo* x1448);
+_Bool irmin_set_tree(Irmin* x1456, IrminPath* x1455, IrminTree* x1454,
+                     IrminInfo* x1453);
+IrminValue* irmin_find(Irmin* x1458, IrminPath* x1457);
+IrminTree* irmin_find_tree(Irmin* x1460, IrminPath* x1459);
+_Bool irmin_remove(Irmin* x1463, IrminPath* x1462, IrminInfo* x1461);
+_Bool irmin_mem(Irmin* x1465, IrminPath* x1464);
+_Bool irmin_mem_tree(Irmin* x1467, IrminPath* x1466);
+IrminPathList* irmin_list(Irmin* x1469, IrminPath* x1468);
+uint64_t irmin_path_list_length(IrminRepo* x1471, IrminPathList* x1470);
+uint64_t irmin_commit_list_length(IrminRepo* x1473, IrminCommitList* x1472);
+IrminPath* irmin_path_list_get(IrminRepo* x1476, IrminPathList* x1475,
+                               uint64_t x1474);
+IrminCommit* irmin_commit_list_get(IrminRepo* x1479, IrminCommitList* x1478,
+                                   uint64_t x1477);
+void irmin_path_list_free(IrminPathList* x1480);
+void irmin_commit_list_free(IrminCommitList* x1481);
+void irmin_free(Irmin* x1482);
+IrminTree* irmin_tree_new(IrminRepo* x1483);
+IrminTree* irmin_tree_clone(IrminRepo* x1485, IrminTree* x1484);
+_Bool irmin_tree_mem(IrminRepo* x1488, IrminTree* x1487, IrminPath* x1486);
+_Bool irmin_tree_mem_tree(IrminRepo* x1491, IrminTree* x1490,
+                          IrminPath* x1489);
+IrminValue* irmin_tree_find(IrminRepo* x1494, IrminTree* x1493,
+                            IrminPath* x1492);
+IrminTree* irmin_tree_find_tree(IrminRepo* x1497, IrminTree* x1496,
+                                IrminPath* x1495);
+void irmin_tree_add(IrminRepo* x1501, IrminTree* x1500, IrminPath* x1499,
+                    IrminValue* x1498);
+void irmin_tree_add_tree(IrminRepo* x1505, IrminTree* x1504,
+                         IrminPath* x1503, IrminTree* x1502);
+void irmin_tree_remove(IrminRepo* x1508, IrminTree* x1507, IrminPath* x1506);
+_Bool irmin_tree_equal(IrminRepo* x1511, IrminTree* x1510, IrminTree* x1509);
+IrminPathList* irmin_tree_list(IrminRepo* x1514, IrminTree* x1513,
+                               IrminPath* x1512);
+void irmin_tree_free(IrminTree* x1515);
+IrminRepo* irmin_repo_new(IrminConfig* x1516);
+IrminBranchList* irmin_repo_branches(IrminRepo* x1517);
+uint64_t irmin_branch_list_length(IrminRepo* x1519, IrminBranchList* x1518);
+IrminString* irmin_branch_list_get(IrminRepo* x1522, IrminBranchList* x1521,
+                                   uint64_t x1520);
+_Bool irmin_hash_equal(IrminRepo* x1525, IrminHash* x1524, IrminHash* x1523);
+IrminHash* irmin_contents_hash(IrminRepo* x1527, IrminValue* x1526);
+IrminValue* irmin_contents_of_hash(IrminRepo* x1529, IrminHash* x1528);
+IrminString* irmin_hash_to_string(IrminRepo* x1531, IrminHash* x1530);
+IrminHash* irmin_hash_of_string(IrminRepo* x1534, char* x1533, int64_t x1532);
+void irmin_hash_free(IrminHash* x1535);
+void irmin_branch_list_free(IrminBranchList* x1536);
+void irmin_repo_free(IrminRepo* x1537);
+IrminInfo* irmin_commit_info(IrminRepo* x1539, IrminCommit* x1538);
+IrminHash* irmin_commit_hash(IrminRepo* x1541, IrminCommit* x1540);
+IrminCommit* irmin_commit_of_hash(IrminRepo* x1543, IrminHash* x1542);
+IrminCommit* irmin_commit_new(IrminRepo* x1548, IrminCommit** x1547,
+                              uint64_t x1546, IrminTree* x1545,
+                              IrminInfo* x1544);
+IrminCommitList* irmin_commit_parents(IrminRepo* x1550, IrminCommit* x1549);
+_Bool irmin_commit_equal(IrminRepo* x1553, IrminCommit* x1552,
+                         IrminCommit* x1551);
+void irmin_commit_free(IrminCommit* x1554);
+IrminPath* irmin_path(IrminRepo* x1556, char** x1555);
+IrminPath* irmin_path_of_string(IrminRepo* x1559, char* x1558, int64_t x1557);
+IrminPath* irmin_path_empty(IrminRepo* x1560);
+IrminString* irmin_path_to_string(IrminRepo* x1562, IrminPath* x1561);
+IrminPath* irmin_path_parent(IrminRepo* x1564, IrminPath* x1563);
+IrminPath* irmin_path_append(IrminRepo* x1568, IrminPath* x1567, char* x1566,
+                             int64_t x1565);
+IrminPath* irmin_path_append_path(IrminRepo* x1571, IrminPath* x1570,
+                                  IrminPath* x1569);
+_Bool irmin_path_equal(IrminRepo* x1574, IrminPath* x1573, IrminPath* x1572);
+void irmin_path_free(IrminPath* x1575);
 
 
 static void _irmin_cleanup(void *p) { if (p) { irmin_free(*(Irmin**)p); p = (void*)0;} };

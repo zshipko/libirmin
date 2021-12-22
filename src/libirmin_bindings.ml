@@ -7,4 +7,5 @@ module Stubs (I : Cstubs_inverted.INTERNAL) = struct
   include Tree.Make (I)
   include Repo.Make (I)
   include Commit.Make (I)
+  include Path.Make (I)
 end
