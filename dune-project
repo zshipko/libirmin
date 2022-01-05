@@ -1,5 +1,7 @@
 (lang dune 2.0)
 
+(name libirmin)
+
 (generate_opam_files true)
 
 (source (github zshipko/libirmin))
