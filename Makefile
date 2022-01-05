@@ -1,6 +1,8 @@
-PREFIX?=/usr/local
+PREFIX?=$(HOME)/.local
 
 SOEXT?=so
+
+OCAML_WHERE=`ocamlc -where`/../..
 
 .PHONY: build
 build:
@@ -12,6 +14,16 @@ build:
 	@cp _build/default/libirmin.$(SOEXT) ./lib
 	@cp _build/default/irmin.h  py/irmin
 	@cp _build/default/libirmin.$(SOEXT) py/irmin
+
+
+opam_install:
+	mkdir -p $(OCAML_WHERE)/../lib/libirmin
+	install _build/default/irmin.h $(OCAML_WHERE)/lib/libirmin/irmin.h
+	install _build/default/libirmin.so $(OCAML_WHERE)/lib/libirmin.so
+
+opam_uninstall:
+	rm -rf $(OCAML_WHERE)/lib/libirmin
+	rm -f $(OCAML_WHERE)/lib/libirmin.so
 
 clean:
 	@dune clean
