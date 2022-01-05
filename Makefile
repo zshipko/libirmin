@@ -2,8 +2,6 @@ PREFIX?=$(HOME)/.local
 
 SOEXT?=so
 
-OCAML_WHERE=`ocamlc -where`/../..
-
 .PHONY: build
 build:
 	@rm -rf py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
@@ -16,27 +14,21 @@ build:
 	@cp _build/default/libirmin.$(SOEXT) py/irmin
 
 
-opam_install:
-	mkdir -p $(OCAML_WHERE)/../lib/libirmin
-	install _build/default/irmin.h $(OCAML_WHERE)/lib/libirmin/irmin.h
-	install _build/default/libirmin.so $(OCAML_WHERE)/lib/libirmin.so
-
-opam_uninstall:
-	rm -rf $(OCAML_WHERE)/lib/libirmin
-	rm -f $(OCAML_WHERE)/lib/libirmin.so
-
 clean:
 	@dune clean
 	@rm -rf lib py/irmin/libirmin.$(SOEXT) py/irmin/irmin.h
 	@cd rust && cargo clean
 
 install:
-	install ./include/irmin.h $(PREFIX)/include
-	install ./lib/libirmin.$(SOEXT) $(PREFIX)/lib
+	@mkdir -p $(PREFIX)/include $(PREFIX)/lib
+	install ./include/irmin.h $(PREFIX)/include/irmin.h
+	install ./lib/libirmin.$(SOEXT) $(PREFIX)/lib/libirmin.$(SOEXT)
 
 uninstall:
 	rm -f $(PREFIX)/include/irmin.h
 	rm -f $(PREFIX)/lib/libirmin.$(SOEXT)
+	@rmdir $(PREFIX)/lib 2> /dev/null || :
+	@rmdir $(PREFIX)/include 2> /dev/null || :
 
 test-rust: build
 	cargo test -- --test-threads=1

@@ -2,10 +2,14 @@ use std::path::PathBuf;
 
 fn main() {
     let path = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
-
     let opam_prefix = PathBuf::from(std::env::var("OPAM_SWITCH_PREFIX").unwrap());
+    let libirmin_prefix = std::env::var("LIBIRMIN_PREFIX");
 
-    let header = if path.join("../libirmin.opam").exists() {
+    let header = if let Ok(libirmin_prefix) = libirmin_prefix {
+        let prefix = PathBuf::from(libirmin_prefix);
+        println!("cargo:rustc-link-search={}", prefix.join("lib").display());
+        prefix.join("include").join("irmin.h")
+    } else if path.join("../libirmin.opam").exists() {
         // In repo
         std::process::Command::new("make")
             .arg("-C")
@@ -41,7 +45,7 @@ fn main() {
             "cargo:rustc-link-search={}",
             opam_prefix.join("lib").display()
         );
-        opam_prefix.join("lib").join("libirmin").join("irmin.h")
+        opam_prefix.join("include").join("irmin.h")
     } else {
         // Installed in $HOME/.local or /usr/local
         let home = std::env::var("HOME").unwrap_or_default();
@@ -51,6 +55,7 @@ fn main() {
             println!("cargo:rustc-link-search={}", user.join("lib").display());
             user.join("include").join("irmin.h")
         } else {
+            println!("cargo:rustc-link-search=/usr/local/lib");
             PathBuf::from("/usr/local/include/irmin.h")
         }
     };

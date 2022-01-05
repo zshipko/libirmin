@@ -2,8 +2,12 @@ import cffi  # type: ignore
 import os
 
 self_path = os.path.dirname(__file__)
+libirmin_prefix = os.getenv("LIBIRMIN_PREFIX")
 
-if os.path.exists(os.path.join(self_path, "libirmin.so")):
+if libirmin_prefix is not None:
+    loc = os.path.join(libirmin_prefix, "lib")
+    header_loc = os.path.join(libirmin_prefix, "include")
+elif os.path.exists(os.path.join(self_path, "libirmin.so")):
     # In repo
     loc = self_path
     header_loc = self_path
@@ -13,7 +17,7 @@ else:
     if prefix is not None and os.path.exists(
             os.path.join(prefix, "lib", "libirmin.so")):
         loc = os.path.join(prefix, "lib")
-        header_loc = os.path.join(loc, "libirmin")
+        header_loc = os.path.join(prefix, "include")
     elif os.path.exists(os.path.join(local, "lib", "libirmin.so")):
         loc = os.path.join(local, "lib")
         header_loc = os.path.join(local, "include")

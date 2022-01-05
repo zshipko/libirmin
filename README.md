@@ -19,6 +19,28 @@ $ make
 
 After that completes `irmin.h` can be found in `include/` and `libirmin.so` will be in `lib/`
 
+### Installation
+
+To install/uninstall `irmin.h` and `libirmin.so`:
+
+```
+$ make install
+$ make uninstall
+``
+
+By default, the header file and shared object will be installed in `~/.local`.
+
+To specify the installation path set the `PREFIX` environment variable. For example, you can
+install libirmin to your current opam switch directory:
+
+```
+$ make PREFIX=$OPAM_SWITCH_PREFIX install
+$ make PREFIX=$OPAM_SWITCH_PREFIX uninstall
+```
+
+The Rust and Python bindings will check `~/.local`, `$OPAM_SWITCH_PREFIX`, `/usr/local` and
+`$LIBIRMIN_PREFIX` when looking for the shared object and header files.
+
 ### Running tests
 
 ```
@@ -37,8 +59,6 @@ Rust bindings exist in the `rust` directory, to use them in your project add the
 ```
 irmin = {git = "https://github.com/zshipko/libirmin"}
 ```
-
-**Note**: `libirmin.so` should be available somewhere in your `LD_LIBRARY_PATH` to ensure it's linked correctly
 
 ## Python bindings
 
