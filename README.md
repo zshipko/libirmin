@@ -6,8 +6,14 @@ See [irmin.h](https://github.com/zshipko/libirmin/blob/main/include/irmin.h) for
 
 ## C bindings
 
-- All `Irmin*` values should be released using the corresponding `irmin_*_free` function.
-- `IrminString*` can safely be cast to `IrminValue*`
+- `IrminX` values should be released using the corresponding `irmin_X_free` function.
+- The following types can safely be cast to `IrminValue*`:
+  - `IrminString`
+  - `IrminCommit`
+  - `IrminHash`
+  - `IrminPath`
+  - `IrminTree`
+  - `IrminInfo`
 
 ### Compiling
 
