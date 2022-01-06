@@ -17,6 +17,5 @@
   (dune (> 2.0))
   (ctypes (>= 0.19))
   (ctypes-foreign (>= 0.18))
-  (irmin-tezos (= "dev"))
   (irmin-unix (= "dev"))))
 
