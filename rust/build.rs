@@ -8,6 +8,10 @@ fn main() {
     let header = if let Ok(libirmin_prefix) = libirmin_prefix {
         let prefix = PathBuf::from(libirmin_prefix);
         println!("cargo:rustc-link-search={}", prefix.join("lib").display());
+        println!(
+            "cargo:rustc-link-arg=-Wl,-rpath,{}",
+            prefix.join("lib").display()
+        );
         prefix.join("include").join("irmin.h")
     } else if path.join("../libirmin.opam").exists() {
         // In repo
@@ -21,7 +25,8 @@ fn main() {
             .join("..")
             .join("_build")
             .join("default")
-            .join("irmin.h");
+            .join("libirmin.so");
+
         std::process::Command::new("cp")
             .arg(lib.as_os_str())
             .arg(&path)
