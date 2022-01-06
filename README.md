@@ -26,7 +26,7 @@ To install/uninstall `irmin.h` and `libirmin.so`:
 ```
 $ make install
 $ make uninstall
-``
+```
 
 By default, the header file and shared object will be installed in `~/.local`.
 
