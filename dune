@@ -7,13 +7,19 @@
 
 (executable
  (name libirmin)
+ (public_name libirmin)
  (libraries libirmin_bindings)
  (modes
-  (native shared_object))
+  (native shared_object) native)
  (modules libirmin irmin_bindings)
  (foreign_stubs
   (language c)
   (names irmin)))
+
+(install
+  (package libirmin)
+  (section lib)
+  (files (irmin.h as include/irmin.h) (libirmin.so as lib/libirmin.so)))
 
 (dirs :standard \ rust py target build dist include lib)
 

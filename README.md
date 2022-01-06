@@ -34,17 +34,28 @@ $ make install
 $ make uninstall
 ```
 
-By default, the header file and shared object will be installed in `~/.local`.
+By default, the header file and shared object will be installed in `~/.local`, into `include` and `lib` directories.
 
 To specify the installation path set the `PREFIX` environment variable. For example, you can
-install libirmin to your current opam switch directory:
+install libirmin to `/usr/local`:
 
 ```
-$ make PREFIX=$OPAM_SWITCH_PREFIX install
-$ make PREFIX=$OPAM_SWITCH_PREFIX uninstall
+$ make PREFIX=/usr/local install
+$ make PREFIX=/usr/local uninstall
 ```
 
-The Rust and Python bindings will check `~/.local`, `$OPAM_SWITCH_PREFIX`, `/usr/local` and
+You can also install/uninstall using [opam](https://github.com/ocaml/opam):
+
+```
+$ opam install .
+$ opam uninstall libirmin
+```
+
+In this case both `irmin.h` and `libirmin.so` will be copied to `$OPAM_SWITCH_PREFIX/lib/libirmin/include` and
+`$OPAM_SWITCH_PREFIX/lib/libirmin/lib`
+
+
+The Rust and Python bindings will check `~/.local`, `$OPAM_SWITCH_PREFIX/lib/libirmin`, `/usr/local` and
 `$LIBIRMIN_PREFIX` when looking for the shared object and header files.
 
 ### Running tests

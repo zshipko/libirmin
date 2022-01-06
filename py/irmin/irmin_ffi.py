@@ -15,6 +15,10 @@ else:
     prefix = os.getenv("OPAM_SWITCH_PREFIX")
     local = os.path.expanduser("~/.local")
     if prefix is not None and os.path.exists(
+            os.path.join(prefix, "lib", "libirmin", "libirmin.so")):
+        loc = os.path.join(prefix, "lib", "libirmin", "lib")
+        header_loc = os.path.join(prefix, "lib", "libirmin", "include")
+    elif prefix is not None and os.path.exists(
             os.path.join(prefix, "lib", "libirmin.so")):
         loc = os.path.join(prefix, "lib")
         header_loc = os.path.join(prefix, "include")
