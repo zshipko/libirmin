@@ -90,5 +90,3 @@ Or, to install directly from this repository:
 ```
 $ python3 -m pip install git+https://github.com/zshipko/libirmin.git
 ```
-
-

@@ -132,5 +132,12 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         let s = Fmt.to_to_string Irmin.Type.pp_ty ty in
         Root.create_string s)
 
+  let () =
+    fn "type_diff"
+      (ty @-> returning ty)
+      (fun ty ->
+        let ty = Root.get_ty ty in
+        Root.create_ty (Irmin.Diff.t ty))
+
   let () = fn "type_free" (ty @-> returning void) free
 end

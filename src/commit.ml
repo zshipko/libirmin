@@ -24,6 +24,17 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             Root.create_hash (module Store) (Store.Commit.hash commit)))
 
   let () =
+    fn "commit_key"
+      (repo @-> commit @-> returning hash)
+      (fun (type repo) repo commit ->
+        catch' (fun () ->
+            let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+              Root.get_repo repo
+            in
+            let commit = Root.get_commit (module Store) commit in
+            Root.create_commit_key (module Store) (Store.Commit.key commit)))
+
+  let () =
     fn "commit_of_hash"
       (repo @-> hash @-> returning commit)
       (fun (type repo) repo hash ->
@@ -34,6 +45,21 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             in
             let hash = Root.get_hash (module Store) hash in
             let commit = run (Store.Commit.of_hash repo hash) in
+            match commit with
+            | Some c -> Root.create_commit (module Store) c
+            | None -> null))
+
+  let () =
+    fn "commit_of_key"
+      (repo @-> commit_key @-> returning commit)
+      (fun (type repo) repo hash ->
+        catch' (fun () ->
+            let (module Store : Irmin.Generic_key.S with type repo = repo), repo
+                =
+              Root.get_repo repo
+            in
+            let hash = Root.get_commit_key (module Store) hash in
+            let commit = run (Store.Commit.of_key repo hash) in
             match commit with
             | Some c -> Root.create_commit (module Store) c
             | None -> null))

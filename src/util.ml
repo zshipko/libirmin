@@ -92,6 +92,16 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         (r : S.hash) =
       Root.create r
 
+    let get_commit_key (type a)
+        (module S : Irmin.Generic_key.S with type commit_key = a) x :
+        S.commit_key =
+      Root.get x
+
+    let create_commit_key (type a)
+        (module S : Irmin.Generic_key.S with type commit_key = a)
+        (r : S.commit_key) =
+      Root.create r
+
     let get_tree (type a) (module S : Irmin.Generic_key.S with type tree = a) x
         : S.tree =
       Root.get x
