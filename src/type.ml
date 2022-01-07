@@ -99,6 +99,15 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create_ty Store.hash_t)
 
   let () =
+    fn "type_commit_key"
+      (repo @-> returning ty)
+      (fun (type repo) repo ->
+        let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+          Root.get_repo repo
+        in
+        Root.create_ty Store.commit_key_t)
+
+  let () =
     fn "type_contents"
       (repo @-> returning ty)
       (fun (type repo) repo ->
