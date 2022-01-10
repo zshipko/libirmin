@@ -7,6 +7,7 @@
 
 (executable
  (name libirmin)
+ (package libirmin)
  (public_name libirmin)
  (libraries libirmin_bindings)
  (modes

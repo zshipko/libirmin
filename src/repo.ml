@@ -120,5 +120,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () = fn "hash_free" (hash @-> returning void) free
   let () = fn "branch_list_free" (branch_list @-> returning void) free
+  let () = fn "commit_key_free" (commit_key @-> returning void) free
+  let () = fn "node_key_free" (node_key @-> returning void) free
+  let () = fn "contents_key_free" (contents_key @-> returning void) free
   let () = fn "repo_free" (repo @-> returning void) free
 end
