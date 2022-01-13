@@ -22,8 +22,6 @@
   (section lib)
   (files (irmin.h as include/irmin.h) (libirmin.so as lib/libirmin.so)))
 
-(dirs :standard \ rust py target build dist include lib)
-
 (env
  (dev
   (flags
