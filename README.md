@@ -7,7 +7,7 @@ See [irmin.h](https://github.com/zshipko/libirmin/blob/main/include/irmin.h) for
 ## C bindings
 
 - `IrminX` values should be released using the corresponding `irmin_X_free` function.
-- The following types can safely be cast to `IrminValue*`:
+- The following types can safely be cast to `IrminValue*`/`IrminContents`:
   - `IrminString`
   - `IrminCommit`
   - `IrminHash`
@@ -30,63 +30,25 @@ After that completes `irmin.h` can be found in `include/` and `libirmin.so` will
 To install/uninstall `irmin.h` and `libirmin.so`:
 
 ```
-$ make install
-$ make uninstall
-```
-
-By default, the header file and shared object will be installed in `~/.local`, into `include` and `lib` directories.
-
-To specify the installation path set the `PREFIX` environment variable. For example, you can
-install libirmin to `/usr/local`:
-
-```
-$ make PREFIX=/usr/local install
-$ make PREFIX=/usr/local uninstall
-```
-
-You can also install/uninstall using [opam](https://github.com/ocaml/opam):
-
-```
 $ opam install .
 $ opam uninstall libirmin
 ```
 
-In this case both `irmin.h` and `libirmin.so` will be copied to `$OPAM_SWITCH_PREFIX/lib/libirmin/include` and
-`$OPAM_SWITCH_PREFIX/lib/libirmin/lib`
-
-
-The Rust and Python bindings will check `~/.local`, `$OPAM_SWITCH_PREFIX/lib/libirmin`, `/usr/local` and
-`$LIBIRMIN_PREFIX` when looking for the shared object and header files.
+`irmin.h` and `libirmin.so` will be copied to `$OPAM_SWITCH_PREFIX/lib/libirmin/include` and
+`$OPAM_SWITCH_PREFIX/lib/libirmin/lib` - this is where the Rust and Python bindings will check.
 
 ### Running tests
 
-```
-$ make test          # C tests only
-$ make test-rust     # Rust tests only
-$ make test-python   # Python tests only
-$ make test-all      # Run all tests
-```
+Testing is handled by `dune`:
 
-`py.test` is required to run the python tests: `pip3 install pytest --user`
+```
+$ dune runtest
+```
 
 ## Rust bindings
 
-Rust bindings exist in the `rust` directory, to use them in your project add the following to your `Cargo.toml` file:
-
-```
-irmin = {git = "https://github.com/zshipko/libirmin"}
-```
+See [irmin-rs](https://github.com/mirage/irmin-rs)
 
 ## Python bindings
 
-Python bindings exist in the `py` directory and can be installed using:
-
-```
-$ python3 -m pip install . --user
-```
-
-Or, to install directly from this repository:
-
-```
-$ python3 -m pip install git+https://github.com/zshipko/libirmin.git
-```
+See [irmin-py](https://github.com/mirage/irmin-py)

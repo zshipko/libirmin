@@ -81,6 +81,15 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
         Root.create_ty (Store.commit_t repo))
 
   let () =
+    fn "type_metadata"
+      (repo @-> returning ty)
+      (fun (type repo) repo ->
+        let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+          Root.get_repo repo
+        in
+        Root.create_ty Store.metadata_t)
+
+  let () =
     fn "type_tree"
       (repo @-> returning ty)
       (fun (type repo) repo ->
@@ -124,6 +133,15 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
           Root.get_repo repo
         in
         Root.create_ty Store.node_key_t)
+
+  let () =
+    fn "type_kinded_key"
+      (repo @-> returning ty)
+      (fun (type repo) repo ->
+        let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
+          Root.get_repo repo
+        in
+        Root.create_ty Store.Tree.kinded_key_t)
 
   let () =
     fn "type_contents"

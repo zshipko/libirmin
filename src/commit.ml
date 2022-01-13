@@ -5,7 +5,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "commit_info"
       (repo @-> commit @-> returning info)
       (fun (type repo) repo commit ->
-        catch' (fun () ->
+        catch' info (fun () ->
             let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
               Root.get_repo repo
             in
@@ -16,7 +16,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "commit_hash"
       (repo @-> commit @-> returning hash)
       (fun (type repo) repo commit ->
-        catch' (fun () ->
+        catch' hash (fun () ->
             let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
               Root.get_repo repo
             in
@@ -25,9 +25,9 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
 
   let () =
     fn "commit_key"
-      (repo @-> commit @-> returning hash)
+      (repo @-> commit @-> returning commit_key)
       (fun (type repo) repo commit ->
-        catch' (fun () ->
+        catch' commit_key (fun () ->
             let (module Store : Irmin.Generic_key.S with type repo = repo), _ =
               Root.get_repo repo
             in
@@ -38,37 +38,37 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "commit_of_hash"
       (repo @-> hash @-> returning commit)
       (fun (type repo) repo hash ->
-        catch' (fun () ->
+        catch' commit (fun () ->
             let (module Store : Irmin.Generic_key.S with type repo = repo), repo
                 =
               Root.get_repo repo
             in
             let hash = Root.get_hash (module Store) hash in
-            let commit = run (Store.Commit.of_hash repo hash) in
-            match commit with
+            let c = run (Store.Commit.of_hash repo hash) in
+            match c with
             | Some c -> Root.create_commit (module Store) c
-            | None -> null))
+            | None -> null commit))
 
   let () =
     fn "commit_of_key"
       (repo @-> commit_key @-> returning commit)
       (fun (type repo) repo hash ->
-        catch' (fun () ->
+        catch' commit (fun () ->
             let (module Store : Irmin.Generic_key.S with type repo = repo), repo
                 =
               Root.get_repo repo
             in
             let hash = Root.get_commit_key (module Store) hash in
-            let commit = run (Store.Commit.of_key repo hash) in
-            match commit with
+            let c = run (Store.Commit.of_key repo hash) in
+            match c with
             | Some c -> Root.create_commit (module Store) c
-            | None -> null))
+            | None -> null commit))
 
   let () =
     fn "commit_new"
       (repo @-> ptr commit @-> uint64_t @-> tree @-> info @-> returning commit)
       (fun (type repo) repo parents n tree info ->
-        catch' (fun () ->
+        catch' commit (fun () ->
             let n = UInt64.to_int n in
             let (module Store : Irmin.Generic_key.S with type repo = repo), repo
                 =
@@ -77,7 +77,8 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             let parents =
               if is_null parents || n = 0 then []
               else
-                CArray.from_ptr parents n |> CArray.to_list
+                CArray.from_ptr parents n
+                |> CArray.to_list
                 |> List.map (Root.get_commit (module Store))
                 |> List.map Store.Commit.key
             in
@@ -90,7 +91,7 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "commit_parents"
       (repo @-> commit @-> returning commit_list)
       (fun (type repo) repo commit ->
-        catch' (fun () ->
+        catch' commit_list (fun () ->
             let open Lwt.Infix in
             let (module Store : Irmin.Generic_key.S with type repo = repo), repo
                 =
@@ -123,4 +124,5 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             Irmin.Type.(unstage (equal (Store.commit_t repo))) a b))
 
   let () = fn "commit_free" (commit @-> returning void) free
+  let () = fn "commit_key_free" (commit_key @-> returning void) free
 end
