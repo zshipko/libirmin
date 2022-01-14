@@ -22,15 +22,15 @@ let generate dirname =
     stubs;
   writeln c_fd
     {|
-void irmin_init(int argc, char* argv[], char* envp[]){
-  caml_startup(argv);
-}
-
 #ifndef IRMIN_NO_INIT
+static char *_libirmin_args[] = {"libirmin", NULL};
+void irmin_init(void){
+  caml_startup(_libirmin_args);
+}
 #ifdef __APPLE__
-__attribute__((section("__DATA,__mod_init_func"))) typeof(irmin_init) *__init = irmin_init;
+__attribute__((section("__DATA,__mod_init_func"))) typeof(irmin_init) *p_irmin_init = irmin_init;
 #else
-__attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[]) = &irmin_init;
+__attribute__((section(".init_array"))) void (*p_irmin_init)(void) = irmin_init;
 #endif
 #endif
     |};
@@ -56,9 +56,9 @@ __attribute__((section(".init_array"))) void (* p_irmin_init)(int,char*[],char*[
       "IrminInfo";
       "IrminHash";
       "IrminString";
-      "IrminPathList";
-      "IrminCommitList";
-      "IrminBranchList";
+      "IrminPathArray";
+      "IrminCommitArray";
+      "IrminBranchArray";
     ];
   writeln h_fd "void caml_startup(char *argv[]);";
   writeln h_fd "void caml_shutdown();";
