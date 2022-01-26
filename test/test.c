@@ -23,7 +23,7 @@ TEST test_irmin_value_json(void) {
 }
 
 TEST test_irmin_store(void) {
-  // Setup config for git store
+  // Setup config
   AUTO IrminConfig *config = irmin_config_mem(NULL, NULL);
 
   // Initialize repo and store
@@ -87,14 +87,14 @@ TEST test_irmin_store(void) {
   free(src);
 
   // List
-  IrminPathList *paths = irmin_list(store, path1);
-  ASSERT_EQ(irmin_path_list_length(repo, paths), 2);
+  IrminPathArray *paths = irmin_list(store, path1);
+  ASSERT_EQ(irmin_path_array_length(repo, paths), 2);
 
   PASS();
 }
 
 TEST test_irmin_tree(void) {
-  // Setup config for git store
+  // Setup config
   AUTO IrminConfig *config = irmin_config_mem(NULL, NULL);
 
   // Initialize repo and store
