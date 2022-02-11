@@ -4,6 +4,7 @@
 
 See [irmin.h](https://github.com/zshipko/libirmin/blob/main/include/irmin.h) for available functions and types.
 
+
 ## C bindings
 
 - `IrminX` values should be released using the corresponding `irmin_X_free` function.
@@ -44,6 +45,10 @@ Testing is handled by `dune`:
 ```
 $ dune runtest
 ```
+
+## Usage
+
+See [README_LIBIRMIN](README_LIBIRMIN.md)
 
 ## Rust bindings
 
