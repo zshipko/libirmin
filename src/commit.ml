@@ -108,6 +108,15 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
             Irmin.Type.(unstage (equal (Store.commit_t repo))) a b))
 
   let () =
+    fn "commit_tree"
+      (repo @-> commit @-> returning tree)
+      (fun (type repo) repo commit ->
+        with_repo' repo tree
+          (fun (module Store : Irmin.Generic_key.S with type repo = repo) _ ->
+            let commit = Root.get_commit (module Store) commit in
+            Root.create_tree (module Store) (Store.Commit.tree commit)))
+
+  let () =
     fn "commit_array_length"
       (repo @-> commit_array @-> returning uint64_t)
       (fun (type repo) repo p ->
