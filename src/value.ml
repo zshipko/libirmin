@@ -16,7 +16,9 @@ module Make (I : Cstubs_inverted.INTERNAL) = struct
     fn "value_bool" (bool @-> returning value) (fun b -> Root.create_value b)
 
   let () =
-    fn "value_clone" (value @-> returning value) (fun x -> Root.create_value x)
+    fn "value_clone"
+      (value @-> returning value)
+      (fun x -> Root.create_value (Root.get_value x))
 
   let () =
     fn "value_get_string"
